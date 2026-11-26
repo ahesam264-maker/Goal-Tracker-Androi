@@ -1,0 +1,115 @@
+name: Android APK Build
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  # ---------- ساخت نسخه Debug (همیشه) ----------
+  build-debug:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 1) دریافت سورس پروژه
+        uses: actions/checkout@v4
+
+      - name: 2) آماده‌سازی محیط Java/Android
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: 3) دانلود فونت وزیرمتن (فقط در مرحله ساخت — بدون وابستگی در زمان اجرا)
+        continue-on-error: true
+        run: |
+          mkdir -p assets/fonts
+          BASE="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/fonts/webfonts"
+          for f in Regular Medium Bold; do
+            curl -fsSL --retry 3 -o "assets/fonts/Vazirmatn-$f.woff2" "$BASE/Vazirmatn-$f.woff2" || echo "warn: font $f not fetched"
+          done
+          ls -la assets/fonts || true
+
+      - name: 4) نصب Gradle
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: '8.7'
+
+      - name: 5) ساخت APK با Gradle
+        run: gradle -p android assembleDebug --no-daemon --stacktrace
+
+      - name: 6) بررسی نتیجه ساخت
+        run: |
+          APK="android/app/build/outputs/apk/debug/app-debug.apk"
+          if [ ! -f "$APK" ]; then echo "::error::APK ساخته نشد"; exit 1; fi
+          ls -la android/app/build/outputs/apk/debug/
+          echo "✅ APK ساخته شد: $APK"
+
+      - name: 7) ذخیره APK در Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: Goal-Tracker-debug-APK
+          path: android/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+          retention-days: 30
+
+  # ---------- ساخت نسخه Release امضاشده (در صورت وجود Secrets) ----------
+  build-release:
+    needs: build-debug
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    env:
+      HAS_KEYS: ${{ secrets.RELEASE_KEYSTORE_BASE64 != '' }}
+    steps:
+      - name: 1) دریافت سورس پروژه
+        uses: actions/checkout@v4
+
+      - name: 2) آماده‌سازی محیط Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: 3) باز کردن کلید امضا از GitHub Secrets
+        if: env.HAS_KEYS == 'true'
+        run: |
+          echo "$RELEASE_KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/release.jks"
+          echo "KEYSTORE_PATH=$RUNNER_TEMP/release.jks" >> "$GITHUB_ENV"
+
+      - name: 4) دانلود فونت وزیرمتن (مرحله ساخت)
+        continue-on-error: true
+        run: |
+          mkdir -p assets/fonts
+          BASE="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/fonts/webfonts"
+          for f in Regular Medium Bold; do
+            curl -fsSL --retry 3 -o "assets/fonts/Vazirmatn-$f.woff2" "$BASE/Vazirmatn-$f.woff2" || true
+          done
+
+      - name: 5) نصب Gradle
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: '8.7'
+
+      - name: 6) ساخت Release
+        if: env.HAS_KEYS == 'true'
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: gradle -p android assembleRelease --no-daemon --stacktrace
+
+      - name: 7) ساخت Release بدون امضا (فقط وقتی Secrets موجود نیست)
+        if: env.HAS_KEYS != 'true'
+        run: gradle -p android assembleRelease --no-daemon --stacktrace
+
+      - name: 8) ذخیره APK نسخه Release
+        uses: actions/upload-artifact@v4
+        with:
+          name: Goal-Tracker-release-APK
+          path: android/app/build/outputs/apk/release/*.apk
+          if-no-files-found: error
+          retention-days: 30
