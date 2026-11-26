@@ -1,0 +1,1923 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#2563eb">
+<title>مسیر — مدیریت اهداف و پیشرفت</title>
+<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+<!-- فونت وزیرمتن: به‌صورت محلی از assets/fonts/ بارگذاری می‌شود (توسط اسکریپت پایین صفحه).
+     اگر فایل‌های woff2 موجود نباشند و صفحه روی وب (http/https) باشد، یک لینک جایگزین
+     فقط برای نسخه وب اضافه می‌شود؛ در APK (file://) هرگز درخواست اینترنتی فونت ارسال نمی‌شود. -->
+<style>
+/* ============ DESIGN TOKENS ============ */
+:root{
+  --ink:#13244e;            /* deep navy text */
+  --ink-soft:#3b4d7a;
+  --muted:#7487ab;
+  --blue:#2563eb;
+  --blue-dark:#1e40af;
+  --blue-deep:#16307a;
+  --blue-mid:#3b82f6;
+  --blue-soft:#dbeafe;
+  --blue-faint:#eef4ff;
+  --blue-line:#d7e4fb;
+  --bg:#f2f7ff;
+  --card:#ffffff;
+  --amber:#d97706;
+  --amber-soft:#fef3c7;
+  --amber-line:#fde9c4;
+  --green:#0d9488;
+  --red:#e11d48;
+  --shadow-sm:0 1px 3px rgba(30,64,175,.06),0 4px 14px rgba(30,64,175,.06);
+  --shadow-md:0 2px 8px rgba(30,64,175,.08),0 14px 34px rgba(30,64,175,.10);
+  --shadow-blue:0 8px 24px rgba(37,99,235,.30);
+  --r-lg:22px; --r-md:16px; --r-sm:12px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0;overflow-x:hidden}
+body{
+  font-family:'Vazirmatn',system-ui,-apple-system,'Segoe UI',Tahoma,sans-serif;
+  background:linear-gradient(160deg,#e8f1ff 0%,#f6faff 40%,#eef4ff 100%);
+  color:var(--ink);min-height:100vh;font-size:15px;line-height:1.75;
+}
+input,textarea,select,button{font-family:inherit;font-size:inherit;color:inherit}
+button{cursor:pointer;border:none;background:none}
+img,svg{display:block}
+::selection{background:var(--blue-soft)}
+
+/* ============ APP FRAME (mobile canvas) ============ */
+.app{max-width:480px;margin:0 auto;min-height:100vh;position:relative;
+  padding:14px 14px calc(104px + env(safe-area-inset-bottom));}
+@media(min-width:520px){
+  body{background:radial-gradient(900px 500px at 80% -10%,#d6e6ff 0%,transparent 60%),radial-gradient(700px 500px at 10% 110%,#d6e6ff 0%,transparent 55%),#e9f1fd}
+  .app{background:linear-gradient(170deg,#f7faff,#eef4ff);box-shadow:0 0 0 1px rgba(30,64,175,.08),0 30px 80px rgba(22,48,122,.14);border-radius:34px;margin:20px auto;min-height:calc(100vh - 40px)}
+}
+
+/* ============ VIEWS ============ */
+.view{display:none}
+.view.on{display:block;animation:viewIn .34s cubic-bezier(.22,.9,.3,1)}
+@keyframes viewIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+
+.vhead{display:flex;align-items:center;gap:10px;margin:6px 2px 16px}
+.vhead h1{font-size:20px;font-weight:800;margin:0;color:var(--ink-deep,var(--ink-deep));color:var(--ink)}
+.vhead .sub{font-size:12px;color:var(--muted);margin-top:2px}
+.iconbtn{width:42px;height:42px;border-radius:14px;background:#fff;box-shadow:var(--shadow-sm);display:flex;align-items:center;justify-content:center;color:var(--blue-dark);flex:0 0 auto;transition:transform .15s}
+.iconbtn:active{transform:scale(.92)}
+.ic{width:22px;height:22px}
+.ic.sm{width:17px;height:17px}
+.ic.lg{width:26px;height:26px}
+
+/* ============ CARDS ============ */
+.card{background:var(--card);border-radius:var(--r-lg);box-shadow:var(--shadow-md);padding:18px;margin-bottom:14px;border:1px solid rgba(215,228,251,.7)}
+.card h3{font-size:15px;font-weight:800;margin:0 0 4px;display:flex;align-items:center;gap:8px;color:var(--ink)}
+.card h3 .ic{color:var(--blue)}
+.card .hint{font-size:12px;color:var(--muted);margin:0 0 10px}
+
+/* ============ FORMS ============ */
+.f-label{display:block;font-size:13px;font-weight:700;color:var(--ink-soft);margin:14px 0 6px}
+.f-in,.f-ta,.f-sel{width:100%;border:1.5px solid var(--blue-line);background:var(--blue-faint);border-radius:var(--r-sm);padding:12px 14px;font-size:14.5px;outline:none;transition:border-color .2s, box-shadow .2s;margin-top:6px}
+.f-in:focus,.f-ta:focus,.f-sel:focus{border-color:var(--blue);box-shadow:0 0 0 4px rgba(37,99,235,.12);background:#fff}
+.f-ta{min-height:74px;resize:vertical;line-height:1.8}
+.f-sel{appearance:none;background-image:url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%232563eb' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:left 12px center;padding-left:34px}
+.date-row{display:grid;grid-template-columns:1fr 1.1fr 1.4fr;gap:8px;margin-top:6px}
+.date-row .f-sel{margin-top:0}
+
+/* ============ BUTTONS ============ */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:var(--r-sm);font-weight:700;font-size:14px;padding:11px 18px;min-height:46px;transition:transform .15s, box-shadow .2s, background .2s}
+.btn:active{transform:scale(.96)}
+.btn-primary{background:linear-gradient(135deg,#3b82f6,#1d4ed8);color:#fff;box-shadow:var(--shadow-blue)}
+.btn-primary:disabled{opacity:.45;box-shadow:none}
+.btn-ghost{background:var(--blue-faint);color:var(--blue-dark)}
+.btn-line{background:#fff;border:1.5px solid var(--blue-line);color:var(--blue-dark)}
+.btn-danger{background:#fff1f2;color:var(--red);border:1.5px solid #fecdd3}
+.btn-block{width:100%}
+.btn.big{min-height:54px;font-size:16px;border-radius:16px}
+.btn.small{min-height:38px;padding:7px 13px;font-size:12.5px;border-radius:11px}
+.btnrow{display:flex;gap:8px;flex-wrap:wrap}
+.btnrow .btn{flex:1}
+
+/* ============ CHIPS & SEGMENTS ============ */
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.chip{padding:8px 14px;border-radius:999px;background:#fff;border:1.5px solid var(--blue-line);font-size:13px;font-weight:700;color:var(--ink-soft);transition:.2s}
+.chip.on{background:linear-gradient(135deg,#3b82f6,#1d4ed8);border-color:transparent;color:#fff;box-shadow:var(--shadow-blue)}
+.seg{display:flex;background:#e4eeff;border-radius:16px;padding:5px;gap:4px;margin-bottom:16px}
+.seg button{flex:1;padding:10px 4px;border-radius:12px;font-size:12.5px;font-weight:700;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:4px;transition:.2s}
+.seg button .ic{width:19px;height:19px}
+.seg button.on{background:#fff;color:var(--blue-dark);box-shadow:var(--shadow-sm)}
+
+/* ============ BOTTOM NAV ============ */
+.bnav{position:fixed;bottom:calc(10px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);width:min(452px,calc(100% - 20px));background:rgba(255,255,255,.92);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-radius:26px;box-shadow:0 12px 40px rgba(22,48,122,.22),0 0 0 1px rgba(255,255,255,.6) inset;display:flex;padding:8px;z-index:60;border:1px solid rgba(215,228,251,.9)}
+.bnav button{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 2px;border-radius:18px;font-size:10.5px;font-weight:700;color:var(--muted);transition:.2s}
+.bnav button .ic{width:22px;height:22px}
+.bnav button.on{background:linear-gradient(135deg,#3b82f6,#1d4ed8);color:#fff;box-shadow:var(--shadow-blue)}
+
+/* ============ HOME HERO ============ */
+.hero{border-radius:26px;background:linear-gradient(150deg,#1e40af 0%,#2563eb 55%,#3b82f6 100%);color:#fff;padding:22px 20px;position:relative;overflow:hidden;box-shadow:var(--shadow-blue);margin-bottom:16px}
+.hero::before{content:"";position:absolute;width:220px;height:220px;border-radius:50%;background:rgba(255,255,255,.09);top:-90px;left:-60px}
+.hero::after{content:"";position:absolute;width:130px;height:130px;border-radius:50%;background:rgba(255,255,255,.07);bottom:-50px;right:-30px}
+.hero h1{font-size:21px;font-weight:900;margin:0 0 4px;position:relative;z-index:2}
+.hero p{margin:0;font-size:13px;opacity:.85;position:relative;z-index:2;line-height:1.9}
+.hero .rowflex{display:flex;align-items:flex-end;justify-content:space-between;gap:8px;position:relative;z-index:2}
+
+/* ============ MASCOT ============ */
+.mascot{width:104px;height:auto;position:relative;z-index:2;flex:0 0 auto}
+.mascot.small{width:84px}
+.m-body{animation:mbob 3.4s ease-in-out infinite}
+@keyframes mbob{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+.m-shadow{animation:msh 3.4s ease-in-out infinite;transform-origin:center}
+@keyframes msh{0%,100%{transform:scaleX(1)}50%{transform:scaleX(.82)}}
+.m-eyes-open{animation:mblink 4.6s infinite;transform-origin:center 108px}
+@keyframes mblink{0%,93%,100%{transform:scaleY(1)}96%{transform:scaleY(.08)}}
+.m-eyes-closed,.m-brows,.m-zzz,.m-stars{opacity:0;transition:opacity .3s}
+.m-arm{transition:transform .4s;transform-box:fill-box}
+.m-arm-l{transform-origin:100% 15%}
+.m-arm-r{transform-origin:0% 15%}
+.mascot.is-rest .m-eyes-open{opacity:0;animation:none}
+.mascot.is-rest .m-eyes-closed{opacity:1}
+.mascot.is-rest .m-zzz{opacity:1;animation:mz 2.2s ease-in-out infinite}
+@keyframes mz{0%,100%{transform:translateY(0);opacity:.4}50%{transform:translateY(-6px);opacity:1}}
+.mascot.is-focus .m-brows{opacity:1}
+.mascot.is-cheer .m-body{animation:mjump .9s ease-in-out infinite}
+@keyframes mjump{0%,100%{transform:translateY(0)}40%{transform:translateY(-14px)}60%{transform:translateY(-9px)}}
+.mascot.is-cheer .m-arm-l{transform:rotate(135deg)}
+.mascot.is-cheer .m-arm-r{transform:rotate(-135deg)}
+.mascot.is-cheer .m-stars{opacity:1;animation:mstar 1.4s ease-in-out infinite}
+@keyframes mstar{0%,100%{transform:scale(.7)}50%{transform:scale(1.1)}}
+.bubble{position:relative;background:#fff;color:var(--ink);font-size:12px;font-weight:600;border-radius:14px;padding:8px 12px;box-shadow:var(--shadow-sm);max-width:200px;line-height:1.8}
+.bubble::after{content:"";position:absolute;left:-6px;bottom:12px;width:12px;height:12px;background:#fff;transform:rotate(45deg);border-radius:2px}
+
+/* ============ ICON GRID ============ */
+.icon-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:8px}
+.icon-grid button{aspect-ratio:1;border-radius:14px;background:var(--blue-faint);border:1.5px solid var(--blue-line);display:flex;align-items:center;justify-content:center;color:var(--ink-soft);transition:.18s}
+.icon-grid button .ic{width:20px;height:20px}
+.icon-grid button.on{background:linear-gradient(135deg,#3b82f6,#1d4ed8);color:#fff;border-color:transparent;box-shadow:var(--shadow-blue);transform:scale(1.05)}
+
+/* ============ PATH HERO ============ */
+.phero{border-radius:26px;background:linear-gradient(150deg,#1e40af,#2563eb 60%,#3b82f6);color:#fff;padding:18px;box-shadow:var(--shadow-blue);margin-bottom:10px;position:relative;overflow:hidden}
+.phero::before{content:"";position:absolute;width:260px;height:260px;border-radius:50%;background:rgba(255,255,255,.08);top:-130px;left:-90px}
+.phero .top{display:flex;justify-content:space-between;align-items:center;gap:10px;position:relative;z-index:2}
+.phero .pname{font-size:17px;font-weight:900;display:flex;align-items:center;gap:8px;margin:0}
+.phero .pname .ic{width:20px;height:20px}
+.phero .pdesc{font-size:11.5px;opacity:.8;margin:4px 0 0;line-height:1.8}
+.ringwrap{position:relative;width:96px;height:96px;flex:0 0 auto}
+.ringwrap svg{transform:rotate(-90deg)}
+.ringbg{stroke:rgba(255,255,255,.22)}
+.ringfg{stroke:#fff;stroke-linecap:round;transition:stroke-dashoffset 1s cubic-bezier(.22,.9,.3,1)}
+.ringtxt{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.ringtxt b{font-size:19px;font-weight:900}
+.ringtxt span{font-size:9px;opacity:.8}
+.pstats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px;position:relative;z-index:2}
+.pstat{background:rgba(255,255,255,.13);border-radius:14px;padding:8px 6px;text-align:center;backdrop-filter:blur(4px)}
+.pstat b{font-size:15px;font-weight:900;display:block}
+.pstat span{font-size:10px;opacity:.8}
+.phero-foot{display:flex;gap:8px;margin-top:12px;position:relative;z-index:2}
+.phero-foot .mini{flex:1;background:rgba(255,255,255,.14);color:#fff;border-radius:12px;padding:9px 10px;font-size:11.5px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:6px;backdrop-filter:blur(4px)}
+.phero-foot .mini .ic{width:15px;height:15px}
+
+/* countdown / banners */
+.banner{border-radius:var(--r-md);padding:13px 16px;font-size:13px;font-weight:700;display:flex;align-items:center;gap:10px;margin-bottom:12px;border:1.5px solid transparent}
+.banner .ic{flex:0 0 auto}
+.banner.blue{background:var(--blue-faint);color:var(--blue-dark);border-color:var(--blue-line)}
+.banner.amber{background:var(--amber-soft);color:#92600a;border-color:var(--amber-line)}
+.banner.green{background:#ecfdf5;color:#065f46;border-color:#a7f3d0}
+.banner.big-clock b{font-size:22px;font-weight:900;font-variant-numeric:tabular-nums}
+
+/* ============ PATH ============ */
+.path-wrap{position:relative;margin:6px 0 20px}
+#path-svg{position:absolute;inset:0;width:100%;pointer-events:none}
+.pnode{position:absolute;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:4px;z-index:3;cursor:pointer;width:86px;background:none;padding:0}
+.pnode .orb{width:47px;height:47px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:14px;position:relative;transition:transform .2s;border:3px solid transparent}
+.pnode:active .orb{transform:scale(.9)}
+.pnode .cap{font-size:9.5px;font-weight:700;color:var(--muted);background:rgba(255,255,255,.9);padding:1px 8px;border-radius:999px;box-shadow:var(--shadow-sm);white-space:nowrap}
+.pnode.future .orb{background:#fff;border-color:var(--blue-line);color:var(--muted)}
+.pnode.done .orb{background:linear-gradient(135deg,#3b82f6,#1d4ed8);color:#fff;box-shadow:var(--shadow-blue)}
+.pnode.done .cap{color:var(--blue-dark)}
+.pnode.missed .orb{background:#fff;border-color:#f5c97e;border-style:dashed;color:var(--amber)}
+.pnode.missed .cap{color:var(--amber)}
+.pnode.current .orb{background:#fff;border-color:var(--blue);color:var(--blue-dark);box-shadow:0 0 0 5px rgba(37,99,235,.18)}
+.pnode.current .orb::before{content:"";position:absolute;inset:-11px;border-radius:50%;border:2px dashed rgba(37,99,235,.55);animation:spinRing 7s linear infinite}
+@keyframes spinRing{to{transform:rotate(360deg)}}
+.pnode.current .cap{background:var(--blue);color:#fff}
+.pnode .st-ic{position:absolute;top:-5px;left:-5px;width:19px;height:19px;border-radius:50%;background:#fff;box-shadow:var(--shadow-sm);display:flex;align-items:center;justify-content:center;color:var(--blue);border:1.5px solid var(--blue-line)}
+.pnode .st-ic svg{width:11px;height:11px}
+.pathflag{position:absolute;transform:translate(-50%,-50%);text-align:center;z-index:2;width:90px}
+.pathflag .pin{width:40px;height:40px;margin:0 auto;border-radius:14px;background:linear-gradient(135deg,#fbbf24,#f59e0b);display:flex;align-items:center;justify-content:center;color:#7c2d12;box-shadow:0 8px 20px rgba(245,158,11,.4)}
+.pathflag .pin .ic{width:20px;height:20px}
+.pathflag span{font-size:10px;font-weight:800;color:var(--amber);background:#fff;padding:1px 9px;border-radius:999px;box-shadow:var(--shadow-sm)}
+.pathstart{position:absolute;transform:translate(-50%,-50%);z-index:2;font-size:10.5px;font-weight:800;color:var(--blue-dark);background:linear-gradient(135deg,#dbeafe,#bfdbfe);padding:4px 12px;border-radius:999px;box-shadow:var(--shadow-sm)}
+
+/* ============ DAY VIEW ============ */
+.dhead{position:sticky;top:10px;z-index:40;border-radius:20px;background:rgba(255,255,255,.92);backdrop-filter:blur(14px);box-shadow:var(--shadow-md);padding:12px 14px;display:flex;align-items:center;gap:10px;margin-bottom:14px;border:1px solid var(--blue-line)}
+.dhead .t{flex:1;min-width:0}
+.dhead .t b{font-size:15px;font-weight:900;display:flex;align-items:center;gap:6px}
+.dhead .t span{font-size:11px;color:var(--muted)}
+.statechip{font-size:10.5px;font-weight:800;padding:4px 11px;border-radius:999px;flex:0 0 auto}
+.statechip.done{background:var(--blue);color:#fff}
+.statechip.current{background:var(--blue-faint);color:var(--blue-dark);border:1px solid var(--blue-line)}
+.statechip.missed{background:var(--amber-soft);color:#92600a}
+.statechip.future{background:#eef2f9;color:var(--muted)}
+.statechip.wait{background:#eef2f9;color:var(--muted)}
+
+.taskrow{display:flex;gap:8px;margin-bottom:10px}
+.taskrow .f-in{margin-top:0}
+.taskrow .tin{width:86px}
+.taskadd{width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,#3b82f6,#1d4ed8);color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow-blue);flex:0 0 auto}
+.taskadd:active{transform:scale(.92)}
+.tprog{height:8px;border-radius:99px;background:var(--blue-faint);overflow:hidden;margin:4px 0 4px}
+.tprog i{display:block;height:100%;background:linear-gradient(90deg,#60a5fa,#1d4ed8);border-radius:99px;transition:width .5s}
+.tmeta{display:flex;justify-content:space-between;font-size:11.5px;color:var(--muted);margin-bottom:10px}
+.titem{display:flex;align-items:center;gap:10px;background:var(--blue-faint);border:1.5px solid transparent;border-radius:14px;padding:10px 12px;margin-bottom:8px;transition:.2s}
+.titem.checked{background:#f3f8ff;border-color:var(--blue-line)}
+.tcheck{width:26px;height:26px;border-radius:9px;border:2px solid #b9cdf0;background:#fff;flex:0 0 auto;display:flex;align-items:center;justify-content:center;color:#fff;transition:.2s;padding:0}
+.tcheck svg{width:14px;height:14px;opacity:0;transform:scale(.5);transition:.2s}
+.titem.checked .tcheck{background:linear-gradient(135deg,#3b82f6,#1d4ed8);border-color:transparent}
+.titem.checked .tcheck svg{opacity:1;transform:scale(1)}
+.ttxt{flex:1;min-width:0;font-size:13.5px;font-weight:600;word-break:break-word}
+.titem.checked .ttxt{color:var(--muted);text-decoration:line-through}
+.ttime{font-size:10px;font-weight:800;background:#fff;color:var(--blue-dark);border:1px solid var(--blue-line);padding:2px 8px;border-radius:999px;flex:0 0 auto;font-variant-numeric:tabular-nums}
+.tact{display:flex;gap:2px;flex:0 0 auto}
+.tact button{width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--muted)}
+.tact button:active{background:#fff}
+.tact .del{color:var(--red)}
+.tempty{text-align:center;color:var(--muted);font-size:12.5px;padding:14px 8px;background:var(--blue-faint);border-radius:14px;border:1.5px dashed var(--blue-line)}
+
+.notes-grid .f-ta{margin-top:6px;font-size:13.5px}
+.nlabel{font-size:12.5px;font-weight:700;color:var(--ink-soft);display:flex;gap:7px;align-items:center;margin:12px 0 2px}
+.nlabel .ic{width:15px;height:15px;color:var(--blue)}
+
+.stars{display:flex;gap:6px;margin:8px 0}
+.stars button{padding:4px;color:#c6d6f2;transition:transform .15s}
+.stars button svg{width:30px;height:30px}
+.stars button.on{color:var(--blue)}
+.stars button:active{transform:scale(1.2)}
+
+.sumgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}
+.sumitem{background:var(--blue-faint);border-radius:12px;padding:10px 12px}
+.sumitem span{font-size:10.5px;color:var(--muted);display:block}
+.sumitem b{font-size:15px;font-weight:900;color:var(--ink)}
+
+/* ============ TOOLS ============ */
+.timer-card{text-align:center;padding:26px 18px 20px}
+.tmode{font-size:11px;font-weight:800;letter-spacing:.5px;color:var(--blue);background:var(--blue-faint);display:inline-block;padding:4px 14px;border-radius:999px;margin-bottom:14px}
+.tmode.break{background:var(--amber-soft);color:var(--amber)}
+.dial{position:relative;width:218px;height:218px;margin:0 auto 6px}
+.dial svg{transform:rotate(-90deg)}
+.dialbg{stroke:var(--blue-faint)}
+.dialfg{stroke:url(#dialgrad);stroke-linecap:round;transition:stroke-dashoffset .3s linear}
+.dialtxt{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+.dialtxt .tm{font-size:44px;font-weight:900;color:var(--ink);font-variant-numeric:tabular-nums;line-height:1.2}
+.dialtxt .st{font-size:11px;color:var(--muted);font-weight:700}
+.tctrl{display:flex;justify-content:center;gap:10px;margin-top:18px}
+.tctrl .round{width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;transition:transform .15s}
+.tctrl .round:active{transform:scale(.9)}
+.tctrl .main{width:70px;height:70px;background:linear-gradient(135deg,#3b82f6,#1d4ed8);color:#fff;box-shadow:var(--shadow-blue)}
+.tctrl .side{background:#fff;color:var(--blue-dark);box-shadow:var(--shadow-sm);border:1.5px solid var(--blue-line)}
+.tset{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:18px}
+.tset label{font-size:10.5px;font-weight:700;color:var(--muted);display:block}
+.tset input{width:100%;margin-top:4px;text-align:center;border:1.5px solid var(--blue-line);background:var(--blue-faint);border-radius:10px;padding:8px 4px;font-weight:800;font-size:15px;outline:none;font-variant-numeric:tabular-nums}
+.tset input:focus{border-color:var(--blue)}
+.pomodots{display:flex;justify-content:center;gap:7px;margin-top:14px}
+.pomodots i{width:9px;height:9px;border-radius:50%;background:var(--blue-line);transition:.3s}
+.pomodots i.on{background:var(--blue);transform:scale(1.25)}
+
+.breath{width:150px;height:150px;margin:14px auto;border-radius:50%;background:radial-gradient(circle at 35% 30%,#93c5fd,#2563eb);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:13px;box-shadow:0 18px 46px rgba(37,99,235,.4);transition:transform 4s ease-in-out}
+.breath.in{transform:scale(1.22)}
+.breath.out{transform:scale(.86)}
+
+.excard{background:#fff;border:1.5px solid var(--blue-line);border-radius:var(--r-md);padding:14px;margin-bottom:10px}
+.excard .exhead{display:flex;align-items:center;gap:10px;cursor:pointer}
+.excard .exic{width:42px;height:42px;border-radius:13px;background:linear-gradient(135deg,var(--blue-faint),#dbeafe);display:flex;align-items:center;justify-content:center;color:var(--blue-dark);flex:0 0 auto}
+.excard .ext{flex:1}
+.excard .ext b{font-size:13.5px;display:block}
+.excard .ext span{font-size:11px;color:var(--muted)}
+.excard .chev{color:var(--muted);transition:transform .25s}
+.excard.open .chev{transform:rotate(180deg)}
+.exbody{max-height:0;overflow:hidden;transition:max-height .35s ease}
+.excard.open .exbody{max-height:480px}
+.exbody ol{margin:10px 0 4px;padding-right:18px;font-size:12.5px;color:var(--ink-soft)}
+.exbody ol li{margin-bottom:6px;line-height:1.9}
+.exnote{font-size:11px;color:var(--muted);background:var(--blue-faint);border-radius:10px;padding:8px 11px;margin-top:8px;display:flex;gap:7px;align-items:flex-start}
+.exnote .ic{width:14px;height:14px;flex:0 0 auto;margin-top:3px}
+
+/* ============ ARCHIVE ============ */
+.statgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:14px}
+.statc{background:#fff;border-radius:var(--r-md);box-shadow:var(--shadow-sm);padding:14px;display:flex;align-items:center;gap:11px;border:1px solid rgba(215,228,251,.7)}
+.statc .sic{width:42px;height:42px;border-radius:13px;background:linear-gradient(135deg,var(--blue-faint),#dbeafe);color:var(--blue-dark);display:flex;align-items:center;justify-content:center;flex:0 0 auto}
+.statc b{font-size:17px;font-weight:900;display:block;line-height:1.4}
+.statc span{font-size:10.5px;color:var(--muted)}
+.chartcard svg{width:100%;height:auto}
+.arow{display:flex;align-items:center;gap:11px;background:#fff;border:1.5px solid var(--blue-line);border-radius:14px;padding:11px 13px;margin-bottom:8px;cursor:pointer;transition:.15s}
+.arow:active{transform:scale(.98)}
+.arow .an{width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:13px;flex:0 0 auto}
+.arow.done .an{background:linear-gradient(135deg,#3b82f6,#1d4ed8);color:#fff}
+.arow.missed .an{background:var(--amber-soft);color:var(--amber)}
+.arow.future .an,.arow.current .an{background:var(--blue-faint);color:var(--blue-dark)}
+.arow .at{flex:1;min-width:0}
+.arow .at b{font-size:13px;display:block}
+.arow .at span{font-size:10.5px;color:var(--muted)}
+.arow .rate{display:flex;gap:1px;color:var(--blue)}
+.arow .rate svg{width:11px;height:11px}
+.arow .chev{color:var(--muted);flex:0 0 auto}
+
+.goalrow{display:flex;align-items:center;gap:11px;background:#fff;border:1.5px solid var(--blue-line);border-radius:14px;padding:12px 14px;margin-bottom:8px}
+.goalrow .gi{width:40px;height:40px;border-radius:13px;background:linear-gradient(135deg,var(--blue-faint),#dbeafe);color:var(--blue-dark);display:flex;align-items:center;justify-content:center}
+.goalrow .gt{flex:1;min-width:0}
+.goalrow .gt b{font-size:13.5px;display:block}
+.goalrow .gt span{font-size:10.5px;color:var(--muted)}
+
+/* ============ MODAL / TOAST / ALARM ============ */
+.moverlay{position:fixed;inset:0;background:rgba(19,36,78,.45);backdrop-filter:blur(6px);z-index:100;display:flex;align-items:center;justify-content:center;padding:22px;animation:fadeIn .2s}
+@keyframes fadeIn{from{opacity:0}}
+.mbox{background:#fff;border-radius:24px;padding:22px;width:100%;max-width:360px;box-shadow:0 30px 80px rgba(19,36,78,.35);animation:popIn .28s cubic-bezier(.22,1.2,.36,1)}
+@keyframes popIn{from{opacity:0;transform:scale(.85) translateY(16px)}}
+.mbox .mic{width:54px;height:54px;border-radius:18px;margin:0 auto 12px;display:flex;align-items:center;justify-content:center;background:var(--blue-faint);color:var(--blue-dark)}
+.mbox.danger .mic{background:#fff1f2;color:var(--red)}
+.mbox h4{margin:0 0 6px;text-align:center;font-size:16px;font-weight:900}
+.mbox p{margin:0 0 18px;text-align:center;font-size:13px;color:var(--muted);line-height:1.9}
+.mbox .btnrow{margin-top:4px}
+.toast{position:fixed;bottom:110px;left:50%;transform:translateX(-50%);z-index:120;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none;width:min(420px,92%)}
+.toast-item{background:rgba(19,36,78,.94);color:#fff;font-size:12.5px;font-weight:600;padding:11px 18px;border-radius:14px;box-shadow:0 14px 40px rgba(19,36,78,.4);animation:toastIn .3s cubic-bezier(.22,1.2,.36,1);display:flex;gap:8px;align-items:center;max-width:100%}
+.toast-item .ic{width:16px;height:16px;flex:0 0 auto}
+.toast-item.ok{background:linear-gradient(135deg,#1d4ed8,#2563eb)}
+@keyframes toastIn{from{opacity:0;transform:translateY(14px) scale(.9)}}
+.alarmbar{position:fixed;bottom:calc(94px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);width:min(452px,calc(100% - 20px));z-index:110;background:linear-gradient(135deg,#1e40af,#2563eb);color:#fff;border-radius:20px;padding:14px 16px;display:flex;align-items:center;gap:12px;box-shadow:0 20px 50px rgba(30,64,175,.5);animation:alarmIn .4s cubic-bezier(.22,1.4,.36,1)}
+@keyframes alarmIn{from{opacity:0;transform:translate(-50%,30px)}}
+.alarmbar .abell{width:44px;height:44px;border-radius:14px;background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;animation:bellshake 1s ease-in-out infinite}
+@keyframes bellshake{0%,100%{transform:rotate(0)}20%{transform:rotate(14deg)}40%{transform:rotate(-12deg)}60%{transform:rotate(8deg)}}
+.alarmbar .atx{flex:1;font-size:12.5px;font-weight:700;line-height:1.7}
+.alarmbar button{background:#fff;color:var(--blue-dark);font-weight:800;font-size:12px;border-radius:11px;padding:9px 14px}
+
+/* ============ PRINT ============ */
+#print-root{display:none}
+@media print{
+  @page{size:A4;margin:13mm}
+  body{background:#fff !important}
+  .app,.bnav,.toast,.moverlay,.alarmbar{display:none !important}
+  #print-root{display:block !important;font-family:'Vazirmatn',sans-serif;color:#13244e;direction:rtl}
+  .pr-head{border-bottom:3px solid #2563eb;padding-bottom:10px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center}
+  .pr-head h1{font-size:19px;color:#1e40af;margin:0}
+  .pr-head .pr-date{font-size:12px;color:#475f8f}
+  .pr-sec{margin-bottom:13px;page-break-inside:avoid}
+  .pr-sec h3{font-size:13.5px;color:#1e40af;margin:0 0 6px;border-right:4px solid #2563eb;padding-right:8px}
+  .pr-task{display:flex;justify-content:space-between;font-size:12px;padding:6px 10px;border:1px solid #d7e4fb;border-radius:8px;margin-bottom:5px}
+  .pr-task .y{color:#1d4ed8;font-weight:700}
+  .pr-task .n{color:#b4540a;font-weight:700}
+  .pr-box{font-size:12px;background:#f2f7ff;border:1px solid #d7e4fb;border-radius:8px;padding:8px 11px;margin-bottom:6px;line-height:1.9}
+  .pr-box b{color:#1e40af}
+  .pr-meta{display:flex;gap:10px;font-size:11.5px;margin-bottom:12px}
+  .pr-meta div{flex:1;background:#f2f7ff;border:1px solid #d7e4fb;border-radius:8px;padding:7px 10px;text-align:center}
+  .pr-foot{font-size:10px;color:#7487ab;text-align:center;margin-top:18px;border-top:1px solid #d7e4fb;padding-top:8px}
+}
+
+/* misc */
+.mt8{margin-top:8px}.mt14{margin-top:14px}.mb0{margin-bottom:0}
+.tac{text-align:center}
+.hidden{display:none !important}
+.clockpill{position:sticky;top:10px;z-index:30;float:left;font-size:11px;font-weight:800;background:rgba(255,255,255,.9);backdrop-filter:blur(10px);color:var(--blue-dark);border:1px solid var(--blue-line);border-radius:999px;padding:5px 13px;box-shadow:var(--shadow-sm);font-variant-numeric:tabular-nums}
+.emptyday{padding:26px 16px;text-align:center;color:var(--muted);font-size:13px}
+.emptyday .ic{width:40px;height:40px;margin:0 auto 10px;color:#b9cdf0}
+.destdot{color:#f59e0b}
+@media(prefers-reduced-motion:reduce){*{animation-duration:.01ms !important;transition-duration:.01ms !important}}
+</style>
+</head>
+<body>
+
+<div class="app" id="app">
+
+  <!-- ======== HOME / CREATE GOAL ======== -->
+  <section class="view" id="view-home"></section>
+
+  <!-- ======== PATH ======== -->
+  <section class="view" id="view-path"></section>
+
+  <!-- ======== DAY ======== -->
+  <section class="view" id="view-day"></section>
+
+  <!-- ======== FOCUS TOOLS ======== -->
+  <section class="view" id="view-tools"></section>
+
+  <!-- ======== ARCHIVE ======== -->
+  <section class="view" id="view-archive"></section>
+
+  <!-- ======== MORE / SETTINGS ======== -->
+  <section class="view" id="view-more"></section>
+
+  <!-- ======== SCHEDULED ALERTS ======== -->
+  <section class="view" id="view-alerts"></section>
+
+</div>
+
+<nav class="bnav" id="bnav"></nav>
+<div id="print-root"></div>
+<div class="toast" id="toast-root"></div>
+<div id="modal-root"></div>
+<div id="alarm-root"></div>
+
+<script>
+'use strict';
+/* ================================================================
+   CORE — icons, utils, Jalali calendar, state, audio, router
+================================================================ */
+
+/* ---------- Icon library (inline SVG, stroke style) ---------- */
+const IC = {
+  target:'<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>',
+  route:'<circle cx="6" cy="19" r="3"/><path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15"/><circle cx="18" cy="5" r="3"/>',
+  flag:'<path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/>',
+  calendar:'<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>',
+  calday:'<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><circle cx="12" cy="16" r="2.4"/>',
+  clock:'<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
+  timer:'<line x1="10" y1="2" x2="14" y2="2"/><line x1="12" y1="14" x2="15.5" y2="11"/><circle cx="12" cy="14" r="8"/>',
+  hourglass:'<path d="M5 22h14"/><path d="M5 2h14"/><path d="M17 22v-4.2a2 2 0 0 0-.6-1.4L12 12l-4.4 4.4a2 2 0 0 0-.6 1.4V22"/><path d="M7 2v4.2a2 2 0 0 0 .6 1.4L12 12l4.4-4.4A2 2 0 0 0 17 6.2V2"/>',
+  archive:'<rect x="3" y="3" width="18" height="5" rx="1"/><path d="M5 8v11a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8"/><line x1="10" y1="12" x2="14" y2="12"/>',
+  gear:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>',
+  plus:'<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>',
+  x:'<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>',
+  check:'<polyline points="20 6 9 17 4 12"/>',
+  chevL:'<polyline points="15 18 9 12 15 6"/>',
+  chevR:'<polyline points="9 18 15 12 9 6"/>',
+  chevD:'<polyline points="6 9 12 15 18 9"/>',
+  pencil:'<path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>',
+  trash:'<path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>',
+  star:'<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>',
+  play:'<polygon points="7 4 20 12 7 20 7 4"/>',
+  pause:'<rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/>',
+  reset:'<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/>',
+  bell:'<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>',
+  volume:'<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/>',
+  download:'<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>',
+  upload:'<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>',
+  printer:'<polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/>',
+  file:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>',
+  brain:'<path d="M12 5a3 3 0 1 0-6 .1A4 4 0 0 0 3.5 10.9a4 4 0 0 0 .6 6.6A4 4 0 1 0 12 18Z"/><path d="M12 5a3 3 0 1 1 6 .1 4 4 0 0 1 2.5 5.8 4 4 0 0 1-.6 6.6A4 4 0 1 1 12 18Z"/><path d="M12 5v13"/>',
+  wind:'<path d="M17.7 7.7a2.5 2.5 0 1 1 1.8 4.3H2"/><path d="M9.6 4.6A2 2 0 1 1 11 8H2"/><path d="M12.6 19.4A2 2 0 1 0 14 16H2"/>',
+  coffee:'<path d="M17 8h1a4 4 0 1 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/>',
+  zap:'<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>',
+  activity:'<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>',
+  scissors:'<circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/><line x1="8.12" y1="8.12" x2="12" y2="12"/>',
+  sparkles:'<path d="M12 3l1.9 5.8L20 10l-6.1 1.2L12 17l-1.9-5.8L4 10l6.1-1.2z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/>',
+  book:'<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>',
+  dumbbell:'<path d="m6.5 6.5 11 11"/><path d="m21 21-1-1"/><path d="m3 3 1 1"/><path d="m18 22 4-4"/><path d="m2 6 4-4"/><path d="m3 10 7-7"/><path d="m14 21 7-7"/>',
+  briefcase:'<rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>',
+  heart:'<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>',
+  globe:'<circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>',
+  code:'<polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>',
+  music:'<path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>',
+  feather:'<path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z"/><line x1="16" y1="8" x2="2" y2="22"/><line x1="17.5" y1="15" x2="9" y2="15"/>',
+  wallet:'<path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/>',
+  leaf:'<path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>',
+  rocket:'<path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/>',
+  sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/>',
+  moon:'<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>',
+  trend:'<polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/>',
+  award:'<circle cx="12" cy="8" r="6"/><path d="M15.48 12.89 17 22l-5-3-5 3 1.52-9.11"/>',
+  info:'<circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>',
+  grid:'<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/>',
+  listc:'<path d="m3 17 2 2 4-4"/><path d="m3 7 2 2 4-4"/><path d="M13 6h8"/><path d="M13 12h8"/><path d="M13 18h8"/>',
+  stop:'<rect x="5" y="5" width="14" height="14" rx="3"/>',
+  pauseC:'<circle cx="12" cy="12" r="10"/><line x1="10" y1="15" x2="10" y2="9"/><line x1="14" y1="15" x2="14" y2="9"/>',
+  playC:'<circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/>',
+  home:'<path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/>',
+  pin:'<path d="M12 2v8"/><path d="m16 6-4 4-4-4"/><circle cx="12" cy="16" r="6"/>'
+};
+function ic(name, cls){ return '<svg class="ic'+(cls?' '+cls:'')+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+(IC[name]||IC.info)+'</svg>'; }
+function icf(name, cls){ return '<svg class="ic'+(cls?' '+cls:'')+'" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linejoin="round">'+(IC[name]||IC.info)+'</svg>'; }
+
+/* ---------- Utils ---------- */
+const $=s=>document.querySelector(s), $$=s=>Array.from(document.querySelectorAll(s));
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const FA='۰۱۲۳۴۵۶۷۸۹';
+function fa(n){ return String(n).replace(/[0-9]/g,d=>FA[+d]); }
+function faTime(s){ return fa(s); }
+function toEn(s){ return String(s).replace(/[۰-۹]/g,d=>FA.indexOf(d)).replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)); }
+function clamp(n,a,b){ return Math.max(a,Math.min(b,n)); }
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
+function clampTxt(s,len){ s=String(s||''); return s.length>len? s.slice(0,len)+'…' : s; }
+function download(name, text, mime){
+  const blob = new Blob([text],{type:(mime||'application/json')+';charset=utf-8'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name;
+  document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},400);
+}
+
+/* ---------- Jalali calendar (pure algorithm) ---------- */
+function div(a,b){return ~~(a/b)} function mod(a,b){return a-~~(a/b)*b}
+const JAL_BREAKS=[-61,9,38,199,426,686,756,818,1111,1181,1210,1635,2060,2097,2192,2262,2324,2394,2456,3178];
+function jalCal(jy,withoutLeap){
+  const bl=JAL_BREAKS.length, gy=jy+621;
+  let leapJ=-14, jp=JAL_BREAKS[0], jm, jump=0;
+  for(let i=1;i<bl;i++){ jm=JAL_BREAKS[i]; jump=jm-jp; if(jy<jm) break; leapJ+=div(jump,33)*8+div(mod(jump,33),4); jp=jm; }
+  let n=jy-jp;
+  leapJ+=div(n,33)*8+div(mod(n,33)+3,4);
+  if(mod(jump,33)===4 && jump-n===4) leapJ++;
+  const leapG=div(gy,4)-div((div(gy,100)+1)*3,4)-150;
+  const march=20+leapJ-leapG;
+  if(withoutLeap) return {gy, march};
+  if(jump-n<6) n=n-jump+div(jump+4,33)*33;
+  let leap=mod(mod(n+1,33)-1,4); if(leap===-1) leap=4;
+  return {leap, gy, march};
+}
+function g2d(gy,gm,gd){
+  let d=div((gy+div(gm-8,6)+100100)*1461,4)+div(153*mod(gm+9,12)+2,5)+gd-34840408;
+  d=d-div(div(gy+100100+div(gm-8,6),100)*3,4)+752;
+  return d;
+}
+function d2g(jdn){
+  let j=4*jdn+139361631;
+  j+=div(div(4*jdn+183187720,146097)*3,4)*4-3908;
+  const i=div(mod(j,1461),4)*5+308;
+  const gd=div(mod(i,153),5)+1, gm=mod(div(i,153),12)+1, gy=div(j,1461)-100100+div(8-gm,6);
+  return {gy,gm,gd};
+}
+function j2d(jy,jm,jd){ const r=jalCal(jy,true); return g2d(r.gy,3,r.march)+(jm-1)*31-div(jm,7)*(jm-7)+jd-1; }
+function d2j(jdn){
+  const gy=d2g(jdn).gy; let jy=gy-621; const r=jalCal(jy,false);
+  const jdn1=g2d(gy,3,r.march); let jd,jm,k=jdn-jdn1;
+  if(k>=0){ if(k<=185){ jm=1+div(k,31); jd=mod(k,31)+1; return {jy,jm,jd}; } k-=186; }
+  else { jy-=1; k+=179; if(r.leap===1) k+=1; }
+  jm=7+div(k,30); jd=mod(k,30)+1; return {jy,jm,jd};
+}
+const JMONTHS=['فروردین','اردیبهشت','خرداد','تیر','مرداد','شهریور','مهر','آبان','آذر','دی','بهمن','اسفند'];
+const WDAYS=['یکشنبه','دوشنبه','سه‌شنبه','چهارشنبه','پنجشنبه','جمعه','شنبه'];
+function jMonthLen(jy,jm){ if(jm<=6) return 31; if(jm<=11) return 30; return jalCal(jy,false).leap===0?30:29; }
+function tehranParts(){
+  try{
+    const f=new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Tehran',year:'numeric',month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'});
+    const p={}; f.formatToParts(new Date()).forEach(x=>{p[x.type]=x.value});
+    return {gy:+p.year, gm:+p.month, gd:+p.day, h:(+p.hour)%24, mi:+p.minute, s:+p.second};
+  }catch(e){ const n=new Date(); return {gy:n.getFullYear(),gm:n.getMonth()+1,gd:n.getDate(),h:n.getHours(),mi:n.getMinutes(),s:n.getSeconds()}; }
+}
+function g2j(gy,gm,gd){ return d2j(g2d(gy,gm,gd)); }
+function todayJ(){ const t=tehranParts(); return g2j(t.gy,t.gm,t.gd); }
+function todaySerial(){ const j=todayJ(); return j2d(j.jy,j.jm,j.jd); }
+function weekdayOf(serial){ const g=d2g(serial); return WDAYS[new Date(g.gy,g.gm-1,g.gd).getDay()]; }
+function fmtJ(serial){ const j=d2j(serial); return fa(j.jd)+' '+JMONTHS[j.jm-1]+' '+fa(j.jy); }
+function fmtJFull(serial){ return weekdayOf(serial)+'، '+fmtJ(serial); }
+function fmtJShort(serial){ const j=d2j(serial); return fa(j.jd)+' '+JMONTHS[j.jm-1]; }
+function nowClock(){ const t=tehranParts(); return fa(String(t.h).padStart(2,'0')+':'+String(t.mi).padStart(2,'0')); }
+function nowClockFull(){ const t=tehranParts(); return fa(String(t.h).padStart(2,'0')+':'+String(t.mi).padStart(2,'0')+':'+String(t.s).padStart(2,'0')); }
+
+/* ---------- State ---------- */
+const LS_KEY='masir-app-v1';
+let state=null;
+function defaultState(){ return {v:1, activeGoalId:null, goals:{}, timers:{}, settings:{sound:true, volume:0.8, pom:{focus:25,short:5,long:15}, med:10, deep:60}}; }
+function loadState(){
+  try{ const raw=localStorage.getItem(LS_KEY); state = raw? JSON.parse(raw) : defaultState(); }
+  catch(e){ state=defaultState(); }
+  const d=defaultState();
+  if(!state.settings) state.settings=d.settings;
+  state.settings.pom=Object.assign({},d.settings.pom, state.settings.pom||{});
+  if(typeof state.settings.sound!=='boolean') state.settings.sound=true;
+  if(typeof state.settings.volume!=='number') state.settings.volume=0.8;
+  if(typeof state.settings.med!=='number') state.settings.med=10;
+  if(typeof state.settings.deep!=='number') state.settings.deep=60;
+  if(!state.timers) state.timers={};
+  if(!state.goals) state.goals={};
+  if(!state.alerts) state.alerts=[];
+}
+let saveT=null;
+function save(){ clearTimeout(saveT); saveT=setTimeout(()=>{ try{ localStorage.setItem(LS_KEY,JSON.stringify(state)); }catch(e){ toast('خطا در ذخیره اطلاعات'); } },120); }
+function saveNow(){ clearTimeout(saveT); try{ localStorage.setItem(LS_KEY,JSON.stringify(state)); }catch(e){} }
+function activeGoal(){ return state.activeGoalId? state.goals[state.activeGoalId]||null : null; }
+function dayRec(goal,n){
+  if(!goal.days) goal.days={};
+  if(!goal.days[n]) goal.days[n]={tasks:[],notes:{did:'',progress:'',problems:'',distract:'',tomorrow:''},rating:0,summary:'',reflection:'',focusMin:0,completed:false,lockedAt:null};
+  const r=goal.days[n];
+  if(!r.notes) r.notes={did:'',progress:'',problems:'',distract:'',tomorrow:''};
+  if(!r.tasks) r.tasks=[];
+  return r;
+}
+function currentDayIndex(goal){
+  if(!goal) return 0;
+  let s=goal.startSerial;
+  if(goal.paused && goal.pausedAtSerial!=null) return goal.pausedAtSerial - s + 1;
+  return todaySerial() - s + 1;
+}
+function dayStatus(goal,n){
+  const idx=currentDayIndex(goal), rec=goal.days?goal.days[n]:null;
+  if(idx<1) return 'future';
+  if(rec&&rec.completed) return 'done';
+  if(n===idx && idx<=goal.totalDays) return 'current';
+  if(n<idx) return 'missed';
+  return 'future';
+}
+function goalStats(goal){
+  let done=0, missed=0, rated=0, ratedSum=0, focus=0, tasksAll=0, tasksDone=0;
+  const idx=currentDayIndex(goal);
+  for(let n=1;n<=goal.totalDays;n++){
+    const r=goal.days?goal.days[n]:null;
+    if(r&&r.completed) done++;
+    else if(n<idx) missed++;
+    if(r&&r.rating){rated++; ratedSum+=r.rating;}
+    if(r&&r.focusMin) focus+=r.focusMin;
+    if(r&&r.tasks){ tasksAll+=r.tasks.length; tasksDone+=r.tasks.filter(t=>t.done).length; }
+  }
+  const pct=Math.round((done/goal.totalDays)*100);
+  return {done, missed, pct, focus, tasksAll, tasksDone, avgRating: rated? (ratedSum/rated):0, idx};
+}
+
+/* ---------- Toast ---------- */
+function toast(msg, icon){
+  const t=document.createElement('div'); t.className='toast-item ok';
+  t.innerHTML=ic(icon||'check','sm')+'<span>'+esc(msg)+'</span>';
+  $('#toast-root').appendChild(t);
+  setTimeout(()=>{ t.style.transition='opacity .3s'; t.style.opacity='0'; setTimeout(()=>t.remove(),320); },2600);
+}
+
+/* ---------- Modal (promise-based) ---------- */
+function modal(opts){
+  return new Promise(res=>{
+    const root=$('#modal-root');
+    const ov=document.createElement('div'); ov.className='moverlay';
+    ov.innerHTML='<div class="mbox'+(opts.danger?' danger':'')+'">'+
+      '<div class="mic">'+ic(opts.icon||(opts.danger?'trash':'info'),'lg')+'</div>'+
+      '<h4>'+esc(opts.title)+'</h4><p>'+esc(opts.msg||'')+'</p>'+
+      '<div class="btnrow">'+
+        '<button class="btn btn-line" id="m-cancel">'+esc(opts.cancelTxt||'انصراف')+'</button>'+
+        '<button class="btn '+(opts.danger?'btn-danger':'btn-primary')+'" id="m-ok">'+esc(opts.okTxt||'تأیید')+'</button>'+
+      '</div></div>';
+    root.appendChild(ov);
+    const close=v=>{ ov.remove(); res(v); };
+    ov.querySelector('#m-ok').onclick=()=>close(true);
+    ov.querySelector('#m-cancel').onclick=()=>close(false);
+    ov.addEventListener('click',e=>{ if(e.target===ov) close(false); });
+  });
+}
+
+/* ---------- Audio (Web Audio API) ---------- */
+let ACTX=null;
+function ensureAudio(){
+  if(!ACTX){ try{ ACTX=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} }
+  if(ACTX && ACTX.state==='suspended') ACTX.resume();
+}
+document.addEventListener('pointerdown',ensureAudio,{once:false});
+function beepOnce(freq,dur,vol,type){
+  if(!ACTX || !state.settings.sound) return;
+  try{
+    const o=ACTX.createOscillator(), g=ACTX.createGain();
+    o.type=type||'sine'; o.frequency.value=freq||880;
+    const v=(vol!=null?vol:state.settings.volume);
+    g.gain.setValueAtTime(0,ACTX.currentTime);
+    g.gain.linearRampToValueAtTime(v*0.5,ACTX.currentTime+0.02);
+    g.gain.exponentialRampToValueAtTime(0.001,ACTX.currentTime+(dur||0.18));
+    o.connect(g); g.connect(ACTX.destination);
+    o.start(); o.stop(ACTX.currentTime+(dur||0.18)+0.05);
+  }catch(e){}
+}
+const Alarm={
+  active:false, timer:null, ticks:0, label:'',
+  start(label){
+    if(this.active) this.stop(true);
+    ensureAudio(); this.active=true; this.label=label||'زمان به پایان رسید'; this.ticks=0;
+    const step=()=>{ if(!this.active) return; this.ticks++;
+      beepOnce(this.ticks%2? 880:660, 0.22, null, 'triangle');
+      if(this.ticks>=14){ this.stop(); } };
+    step(); this.timer=setInterval(step,700);
+    renderAlarmBar();
+  },
+  stop(silent){ this.active=false; if(this.timer){clearInterval(this.timer); this.timer=null;} if(!silent) renderAlarmBar(); }
+};
+function renderAlarmBar(){
+  const r=$('#alarm-root');
+  if(Alarm.active){
+    r.innerHTML='<div class="alarmbar"><div class="abell">'+ic('bell','lg')+'</div>'+
+      '<div class="atx">'+esc(Alarm.label)+'<br>هشدار صوتی در حال پخش است</div>'+
+      '<button id="alarm-stop">قطع صدا</button></div>';
+    $('#alarm-stop').onclick=()=>Alarm.stop();
+  } else r.innerHTML='';
+}
+function testSound(){ ensureAudio(); beepOnce(880,.2); setTimeout(()=>beepOnce(1108,.25),260); }
+
+/* ---------- Mascot (SVG character) ---------- */
+function mascotSVG(stateCls, small){
+  return '<svg class="mascot '+(stateCls||'')+(small?' small':'')+'" viewBox="0 0 200 224" fill="none">'+
+  '<defs><linearGradient id="mbg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5b93f7"/><stop offset="1" stop-color="#1d4ed8"/></linearGradient>'+
+  '<radialGradient id="mface" cx="0.35" cy="0.3" r="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#dbeafe"/></radialGradient></defs>'+
+  '<ellipse class="m-shadow" cx="100" cy="212" rx="40" ry="8" fill="rgba(30,64,175,.16)"/>'+
+  '<g class="m-body">'+
+  '<ellipse cx="76" cy="196" rx="14" ry="9" fill="#16307a"/>'+
+  '<ellipse cx="124" cy="196" rx="14" ry="9" fill="#16307a"/>'+
+  '<g class="m-arm m-arm-l"><rect x="40" y="118" width="16" height="46" rx="8" fill="#2563eb" transform="rotate(18 48 122)"/></g>'+
+  '<g class="m-arm m-arm-r"><rect x="144" y="118" width="16" height="46" rx="8" fill="#2563eb" transform="rotate(-18 152 122)"/></g>'+
+  '<rect x="56" y="44" width="88" height="152" rx="44" fill="url(#mbg)"/>'+
+  '<ellipse cx="100" cy="150" rx="28" ry="34" fill="#ffffff" opacity="0.22"/>'+
+  '<ellipse cx="100" cy="92" rx="33" ry="30" fill="url(#mface)"/>'+
+  '<g class="m-eyes-open"><circle cx="89" cy="90" r="5.5" fill="#13244e"/><circle cx="111" cy="90" r="5.5" fill="#13244e"/><circle cx="90.8" cy="88.2" r="1.8" fill="#fff"/><circle cx="112.8" cy="88.2" r="1.8" fill="#fff"/></g>'+
+  '<g class="m-eyes-closed"><path d="M83 90 q6 6 12 0" stroke="#13244e" stroke-width="3" stroke-linecap="round"/><path d="M105 90 q6 6 12 0" stroke="#13244e" stroke-width="3" stroke-linecap="round"/></g>'+
+  '<g class="m-brows"><path d="M82 79 l12 4" stroke="#13244e" stroke-width="3" stroke-linecap="round"/><path d="M118 79 l-12 4" stroke="#13244e" stroke-width="3" stroke-linecap="round"/></g>'+
+  '<path d="M90 102 q10 8 20 0" stroke="#13244e" stroke-width="3.4" stroke-linecap="round" fill="none"/>'+
+  '<ellipse cx="76" cy="99" rx="6" ry="4" fill="#93c5fd" opacity=".8"/><ellipse cx="124" cy="99" rx="6" ry="4" fill="#93c5fd" opacity=".8"/>'+
+  '<path d="M100 14 a10 10 0 0 1 10 10" stroke="#1d4ed8" stroke-width="5" stroke-linecap="round" fill="none"/><circle cx="112" cy="28" r="7" fill="#60a5fa"/>'+
+  '<g class="m-zzz" fill="#dbeafe"><text x="138" y="52" font-size="17" font-weight="800" font-family="Vazirmatn">z</text><text x="150" y="38" font-size="13" font-weight="800" font-family="Vazirmatn">z</text></g>'+
+  '<g class="m-stars"><path d="M40 60 l3 8 8 3-8 3-3 8-3-8-8-3 8-3z" fill="#dbeafe"/><path d="M160 44 l2.4 6.4 6.4 2.4-6.4 2.4-2.4 6.4-2.4-6.4-6.4-2.4 6.4-2.4z" fill="#bfdbfe"/></g>'+
+  '</g></svg>';
+}
+
+/* ---------- Router ---------- */
+const NAV=[
+  {id:'path', label:'مسیر', icon:'route'},
+  {id:'day',  label:'امروز', icon:'calday'},
+  {id:'tools',label:'تمرکز', icon:'timer'},
+  {id:'archive',label:'آرشیو', icon:'archive'},
+  {id:'alerts',label:'اعلان‌ها', icon:'bell'},
+  {id:'more', label:'بیشتر', icon:'grid'}
+];
+let curView='home';
+function renderNav(){
+  const nb=$('#bnav');
+  nb.innerHTML=NAV.map(n=>'<button data-go="'+n.id+'">'+ic(n.icon)+'<span>'+n.label+'</span></button>').join('');
+  nb.querySelectorAll('button').forEach(b=>b.onclick=()=>goNav(b.dataset.go));
+}
+function goNav(id){
+  const g=activeGoal();
+  if(id==='path'){ if(!g){ goView('home'); return; } goView('path'); renderPath(); return; }
+  if(id==='day'){
+    if(!g){ toast('برای استفاده از این بخش، اول یک هدف بساز','info'); goView('home'); return; }
+    const idx=clamp(currentDayIndex(g),1,g.totalDays);
+    openDay(idx); return;
+  }
+  if(id==='tools'){ goView('tools'); renderTools(); return; }
+  if(id==='archive'){ goView('archive'); renderArchive(); return; }
+  if(id==='alerts'){ goView('alerts'); if(typeof renderAlerts==='function') renderAlerts(); return; }
+  if(id==='more'){ goView('more'); renderMore(); return; }
+}
+function goView(id){
+  curView=id;
+  $$('.view').forEach(v=>v.classList.remove('on'));
+  const el=$('#view-'+id); if(el) el.classList.add('on');
+  $$('#bnav button').forEach(b=>{
+    const bid=b.dataset.go;
+    b.classList.toggle('on', bid===id || (id==='home'&&bid==='path'));
+  });
+  window.scrollTo({top:0,behavior:'instant'});
+}
+
+/* ---------- Live clock ---------- */
+setInterval(()=>{
+  const c=$('#live-clock'); if(c) c.textContent=nowClockFull();
+  tickTimers();
+},500);
+</script>
+<script>
+'use strict';
+/* ================================================================
+   VIEWS — Home (create/edit goal), Path, Day
+================================================================ */
+const GOAL_ICONS=['target','book','dumbbell','briefcase','heart','globe','code','music','feather','wallet','leaf','rocket'];
+let editGoalId=null, selectedIcon='', dayChipVal=30;
+
+/* ================= HOME / CREATE GOAL ================= */
+function renderHome(){
+  const v=$('#view-home');
+  const g=editGoalId? state.goals[editGoalId] : null;
+  const tj=todayJ();
+  const archived=Object.values(state.goals).filter(x=>x.status==='archived');
+  v.innerHTML=
+  '<div class="hero"><div class="rowflex"><div>'+
+    '<h1>'+(g?'ویرایش هدف':'مسیرِ رسیدن به هدفت')+'</h1>'+
+    '<p>'+(g?'مشخصات هدف را اصلاح کن و ذخیره کن.':'هدفت را مشخص کن، یک بازه زمانی انتخاب کن و روزبه‌روز روی مسیرش قدم بردار.')+'</p>'+
+  '</div>'+mascotSVG(g?'is-focus':'')+'</div></div>'+
+
+  '<div class="card"><h3>'+ic('flag')+(g?'مشخصات هدف':'ساخت هدف جدید')+'</h3>'+
+    '<label class="f-label">نام هدف<input class="f-in" id="g-name" maxlength="60" placeholder="مثلاً: یادگیری تندخوانی" value="'+(g?esc(g.name):'')+'"></label>'+
+    '<label class="f-label">توضیح کوتاه (اختیاری)<textarea class="f-ta" id="g-desc" maxlength="300" placeholder="چرا این هدف برایت مهم است؟">'+(g?esc(g.desc):'')+'</textarea></label>'+
+
+    '<div class="f-label">مدت مسیر (روز)</div>'+
+    '<div class="chips" id="days-chips">'+[7,14,21,30,60,90].map(d=>'<button class="chip" data-d="'+d+'">'+fa(d)+' روز</button>').join('')+'</div>'+
+    '<input class="f-in" type="number" id="g-days" min="1" max="3650" inputmode="numeric" value="'+(g?g.totalDays:30)+'">'+
+
+    '<div class="f-label">تاریخ شروع مسیر (تقویم شمسی)</div>'+
+    '<div class="date-row"><select class="f-sel" id="g-dd"></select><select class="f-sel" id="g-mm"></select><select class="f-sel" id="g-yy"></select></div>'+
+
+    '<div class="f-label">آیکون هدف (اختیاری)</div>'+
+    '<div class="icon-grid" id="g-icons">'+
+      '<button data-i="" title="بدون آیکون">'+ic('x')+'</button>'+
+      GOAL_ICONS.map(k=>'<button data-i="'+k+'">'+ic(k)+'</button>').join('')+
+    '</div>'+
+
+    '<button class="btn btn-primary btn-block big mt14" id="g-save">'+ic(g?'check':'flag')+(g?'ذخیره تغییرات':'شروع مسیر')+'</button>'+
+    (g?'<button class="btn btn-line btn-block mt8" id="g-cancel">انصراف از ویرایش</button>':'')+
+  '</div>'+
+
+  (!g && archived.length?
+    '<div class="card"><h3>'+ic('archive')+'اهداف آرشیوشده</h3><p class="hint">می‌توانی یکی از مسیرهای قبلی را بازگردانی کنی.</p><div id="arch-list">'+
+    archived.map(x=>'<div class="goalrow"><div class="gi">'+ic(x.icon||'flag')+'</div><div class="gt"><b>'+esc(x.name)+'</b><span>'+fa(x.totalDays)+' روزه · '+fmtJShort(x.startSerial)+'</span></div><button class="btn btn-ghost small" data-restore="'+x.id+'">بازگردانی</button></div>').join('')+
+    '</div></div>':'')+
+
+  '<div class="card" style="background:linear-gradient(150deg,#16307a,#1e40af);color:#fff;border:none"><div style="display:flex;gap:12px;align-items:center"><div style="flex:1"><b style="font-size:14.5px">امروز: '+fmtJFull(todaySerial())+'</b><div style="font-size:11.5px;opacity:.8;margin-top:4px">ساعت ایران — <span id="live-clock" style="font-variant-numeric:tabular-nums">'+nowClockFull()+'</span></div></div>'+ic('calendar','lg')+'</div></div>';
+
+  // date selects
+  const selD=$('#g-dd'), selM=$('#g-mm'), selY=$('#g-yy');
+  let base={jy:tj.jy, jm:tj.jm, jd:tj.jd};
+  if(g){ base=d2j(g.startSerial); }
+  selY.innerHTML=[base.jy-1,base.jy,base.jy+1,base.jy+2].filter((v,i,a)=>a.indexOf(v)===i).map(y=>'<option value="'+y+'">'+fa(y)+'</option>').join('');
+  selM.innerHTML=JMONTHS.map((m,i)=>'<option value="'+(i+1)+'">'+m+'</option>').join('');
+  function fillDays(){ const len=jMonthLen(+selY.value,+selM.value); selD.innerHTML=Array.from({length:len},(_,i)=>'<option value="'+(i+1)+'">'+fa(i+1)+'</option>').join(''); }
+  selY.value=base.jy; selM.value=base.jm; fillDays(); selD.value=Math.min(base.jd, jMonthLen(+selY.value,+selM.value));
+  selY.onchange=selM.onchange=fillDays;
+
+  // days chips
+  dayChipVal=g? g.totalDays : 30;
+  const daysIn=$('#g-days');
+  function syncChips(){ $$('#days-chips .chip').forEach(c=>c.classList.toggle('on', +c.dataset.d===+daysIn.value)); }
+  $$('#days-chips .chip').forEach(c=>c.onclick=()=>{ daysIn.value=c.dataset.d; syncChips(); });
+  daysIn.oninput=syncChips; syncChips();
+
+  // icons
+  selectedIcon=g? (g.icon||'') : '';
+  $$('#g-icons button').forEach(b=>{ b.classList.toggle('on', b.dataset.i===selectedIcon && (selectedIcon!==''||b.dataset.i===''));
+    b.onclick=()=>{ selectedIcon=b.dataset.i; $$('#g-icons button').forEach(x=>x.classList.toggle('on', x===b)); };
+  });
+  if(!g) $('#g-icons button').classList.add('on');
+
+  $('#g-save').onclick=async ()=>{
+    const name=$('#g-name').value.trim();
+    const days=clamp(parseInt(toEn(daysIn.value))||0,1,3650);
+    if(!name){ toast('نام هدف را بنویس','info'); $('#g-name').focus(); return; }
+    if(!days){ toast('مدت مسیر را معین کن','info'); return; }
+    const serial=j2d(+selY.value,+selM.value,+selD.value);
+    if(g){
+      // edit mode
+      const changedDays = days!==g.totalDays;
+      if(changedDays && days < currentDayIndex(g)){
+        const ok=await modal({title:'کاهش مدت مسیر', msg:'مدت جدید از روز جاری چالش کمتر است. ادامه می‌دهی؟ گزارش روزهای قبلی حفظ می‌شود.', danger:true, okTxt:'ادامه'});
+        if(!ok) return;
+      }
+      g.name=name; g.desc=$('#g-desc').value.trim(); g.totalDays=days; g.startSerial=serial; g.icon=selectedIcon;
+      save(); editGoalId=null; toast('هدف به‌روزرسانی شد'); goView('path'); renderPath(); return;
+    }
+    const id=uid();
+    state.goals[id]={id, name, desc:$('#g-desc').value.trim(), icon:selectedIcon, totalDays:days, startSerial:serial, createdAt:Date.now(), status:'active', paused:false, pausedAtSerial:null, days:{}};
+    state.activeGoalId=id; save();
+    toast('مسیر ساخته شد — قدم اول را بردار','flag');
+    goView('path'); renderPath();
+  };
+  const gc=$('#g-cancel'); if(gc) gc.onclick=()=>{ editGoalId=null; renderHome(); if(activeGoal()){goView('path'); renderPath();} };
+  $$('#arch-list [data-restore]').forEach(b=>b.onclick=async ()=>{
+    if(activeGoal()){ toast('ابتدا هدف فعلی را آرشیو کن','info'); return; }
+    const x=state.goals[b.dataset.restore]; x.status='active'; state.activeGoalId=x.id; save(); toast('هدف بازگردانی شد'); goView('path'); renderPath();
+  });
+}
+
+/* ================= PATH VIEW ================= */
+function pathPositions(N, W){
+  const pts=[], rowH=88, top=64;
+  const cx=W/2, amp=Math.min(W*0.26,118);
+  for(let i=0;i<N;i++){
+    const x=cx + Math.sin(i*0.82)*amp*(i%2===0?1:0.92);
+    pts.push({x, y: top + i*rowH});
+  }
+  return {pts, height: top + (N-1)*rowH + 110};
+}
+function smoothPath(pts, upto){
+  const n = upto==null? pts.length : upto;
+  if(n<2) return '';
+  let d='M '+pts[0].x.toFixed(1)+' '+pts[0].y.toFixed(1);
+  for(let i=1;i<n;i++){
+    const p=pts[i-1], q=pts[i], my=(p.y+q.y)/2;
+    d+=' C '+p.x.toFixed(1)+' '+my.toFixed(1)+', '+q.x.toFixed(1)+' '+my.toFixed(1)+', '+q.x.toFixed(1)+' '+q.y.toFixed(1);
+  }
+  return d;
+}
+function renderPath(){
+  const g=activeGoal(); if(!g){ goView('home'); renderHome(); return; }
+  const st=goalStats(g);
+  const idx=currentDayIndex(g);
+  const started=idx>=1, finished=idx>g.totalDays;
+  const cur=clamp(idx,1,g.totalDays);
+  const daysToStart = 1-idx;
+  const v=$('#view-path');
+
+  const circ=2*Math.PI*44;
+  const off=circ*(1-st.pct/100);
+
+  let statusBanner='';
+  if(!started){
+    statusBanner='<div class="banner blue">'+ic('hourglass')+'<div>مسیر از <b>'+fmtJFull(g.startSerial)+'</b> شروع می‌شود — <b>'+fa(daysToStart)+' روز</b> دیگر</div></div>';
+  } else if(g.paused){
+    statusBanner='<div class="banner amber">'+ic('pauseC')+'<div>مسیر موقتاً متوقف شده است. هر وقت آماده بودی از بخش «بیشتر» ادامه‌اش بده.</div></div>';
+  } else if(finished){
+    statusBanner='<div class="banner green">'+ic('award')+'<div>مسیر «'+esc(g.name)+'» به روز پایانی رسید. گزارش کامل در بخش آرشیو آماده است.</div></div>';
+  }
+
+  let mascotState='', bubble='';
+  if(!started){ mascotState='is-rest'; bubble='مسیر هنوز شروع نشده؛ کمی استراحت می‌کنم.'; }
+  else if(finished){ mascotState='is-cheer'; bubble='به پایان مسیر رسیدی!'; }
+  else { const r=st.pct; mascotState= r>=100?'is-cheer':(st.done>0?'':'is-focus');
+    bubble = st.done===0? 'امروز، روز اولِ مسیر توست.' : (r>=60? 'بیشتر از نیمی راه را آمدی!' : 'روز '+fa(cur)+' از '+fa(g.totalDays)+' — قدم‌به‌قدم جلو می‌رویم.');
+  }
+  const todayRec=g.days?g.days[cur]:null;
+  if(started && !finished && todayRec && todayRec.completed){ mascotState='is-cheer'; bubble='امروز را کامل کردی — آفرین!'; }
+
+  v.innerHTML=
+  '<div class="clockpill" style="position:static;float:none;display:inline-block;margin-bottom:10px">'+ic('clock','sm')+' <span id="live-clock">'+nowClockFull()+'</span></div>'+
+  '<div class="phero"><div class="top">'+
+    '<div class="ringwrap"><svg width="96" height="96" viewBox="0 0 96 96">'+
+      '<circle class="ringbg" cx="48" cy="48" r="44" fill="none" stroke-width="8"/>'+
+      '<circle class="ringfg" cx="48" cy="48" r="44" fill="none" stroke-width="8" stroke-dasharray="'+circ+'" stroke-dashoffset="'+off+'"/>'+
+    '</svg><div class="ringtxt"><b>'+fa(st.pct)+'٪</b><span>پیشرفت</span></div></div>'+
+    '<div style="flex:1"><h2 class="pname">'+(g.icon?ic(g.icon):ic('flag'))+esc(g.name)+'</h2>'+
+      (g.desc?'<p class="pdesc">'+esc(clampTxt(g.desc,90))+'</p>':'')+
+    '</div>'+
+    mascotSVG(mascotState,true)+
+  '</div>'+
+  '<div class="pstats">'+
+    '<div class="pstat"><b>'+fa(st.done)+'</b><span>روز تکمیل‌شده</span></div>'+
+    '<div class="pstat"><b>'+fa(Math.max(0,g.totalDays-Math.max(0,idx-1)))+'</b><span>روز باقی‌مانده</span></div>'+
+    '<div class="pstat"><b>'+fa(st.missed)+'</b><span>روز ناقص</span></div>'+
+  '</div>'+
+  '<div class="phero-foot">'+
+    '<div class="mini">'+ic('calendar','sm')+'شروع: '+fmtJShort(g.startSerial)+'</div>'+
+    '<div class="mini">'+ic('flag','sm')+'پایان: '+fmtJShort(g.startSerial+g.totalDays-1)+'</div>'+
+  '</div></div>'+
+  '<div style="display:flex;justify-content:flex-end;margin-bottom:8px"><div class="bubble">'+esc(bubble)+'</div></div>'+
+  statusBanner+
+  '<div class="path-wrap" id="pwrap"></div>';
+
+  // build path
+  const wrap=$('#pwrap');
+  const W=wrap.clientWidth||360;
+  const {pts,height}=pathPositions(g.totalDays,W);
+  wrap.style.height=height+'px';
+  const lastDone = st.done>0 ? Math.max(...Object.keys(g.days||{}).filter(n=>g.days[n].completed).map(Number)) : 0;
+  const progUpto = !started?0 : clamp(Math.max(lastDone,1),1,g.totalDays);
+  let nodes='';
+  for(let n=1;n<=g.totalDays;n++){
+    const s=started? dayStatus(g,n) : 'future';
+    const p=pts[n-1];
+    nodes+='<button class="pnode '+s+'" style="left:'+p.x+'px;top:'+p.y+'px" data-day="'+n+'">'+
+      '<span class="orb">'+(s==='done'? ic('check'): fa(n))+
+      (s==='current'? '<span class="st-ic">'+ic('sun')+'</span>':'')+
+      (s==='missed'? '<span class="st-ic" style="color:var(--amber)">'+ic('info')+'</span>':'')+
+      '</span><span class="cap">'+fmtJShort(g.startSerial+n-1)+'</span></button>';
+  }
+  const fp=pts[pts.length-1];
+  wrap.innerHTML=
+  '<svg id="path-svg" height="'+height+'" viewBox="0 0 '+W+' '+height+'">'+
+    '<defs><linearGradient id="pgrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#60a5fa"/><stop offset="1" stop-color="#1d4ed8"/></linearGradient></defs>'+
+    '<path d="'+smoothPath(pts)+'" fill="none" stroke="#cfe0fa" stroke-width="7" stroke-linecap="round" stroke-dasharray="1 16"/>'+
+    (progUpto>=2? '<path d="'+smoothPath(pts,progUpto)+'" fill="none" stroke="url(#pgrad)" stroke-width="7" stroke-linecap="round"/>':'')+
+  '</svg>'+
+  nodes+
+  '<div class="pathflag" style="left:'+fp.x+'px;top:'+(fp.y+58)+'px"><div class="pin">'+ic('flag')+'</div><span>پایان مسیر</span></div>'+
+  '<div class="pathstart" style="left:'+pts[0].x+'px;top:'+(pts[0].y-52)+'px">نقطه شروع</div>';
+
+  wrap.querySelectorAll('[data-day]').forEach(b=>b.onclick=()=>openDay(+b.dataset.day));
+  // scroll to current node
+  requestAnimationFrame(()=>{
+    if(started && !finished){
+      const node=wrap.querySelector('[data-day="'+cur+'"]');
+      if(node){ const r=node.getBoundingClientRect(); const y=window.scrollY+r.top-window.innerHeight*0.42; window.scrollTo({top:Math.max(0,y),behavior:'smooth'}); }
+    }
+  });
+}
+
+/* ================= DAY VIEW ================= */
+let dayN=1;
+function openDay(n){ dayN=n; goView('day'); renderDay(); }
+
+function dayInfo(goal,n){
+  const serial=goal.startSerial+n-1;
+  const idx=currentDayIndex(goal);
+  const status=dayStatus(goal,n);
+  const remain=goal.totalDays-n;
+  return {serial, idx, status, remain};
+}
+
+function renderDay(){
+  const g=activeGoal(); if(!g){ goView('home'); return; }
+  const n=clamp(dayN,1,g.totalDays); dayN=n;
+  const rec=dayRec(g,n);
+  const info=dayInfo(g,n);
+  const idx=info.idx, started=idx>=1, finished=idx>g.totalDays;
+  const stChip={done:'<span class="statechip done">تکمیل‌شده</span>',current:'<span class="statechip current">روز جاری</span>',missed:'<span class="statechip missed">ناقص</span>',future:'<span class="statechip future">در راه</span>'}[info.status];
+  const tasksDone=rec.tasks.filter(t=>t.done).length, tasksAll=rec.tasks.length;
+  const tpct=tasksAll? Math.round(tasksDone/tasksAll*100):0;
+  const canComplete = started && !g.paused && !finished && n<=idx;
+  const editable = true; // tasks/notes editable any day (planning allowed)
+
+  const prompts=[
+    ['did','listc','امروز چه کارهایی انجام دادم؟'],
+    ['progress','trend','چه چیزی باعث پیشرفت من شد؟'],
+    ['problems','info','با چه مشکلاتی روبه‌رو شدم؟'],
+    ['distract','wind','چه چیزی مانع تمرکزم شد؟'],
+    ['tomorrow','sun','فردا چه کاری را بهتر انجام بدهم؟']
+  ];
+
+  const v=$('#view-day');
+  v.innerHTML=
+  '<div class="dhead"><button class="iconbtn" id="d-back">'+ic('chevR')+'</button>'+
+    '<div class="t"><b>روز '+fa(n)+' از '+fa(g.totalDays)+'</b><span>'+fmtJFull(info.serial)+' · '+fa(info.remain)+' روز مانده</span></div>'+
+    stChip+'</div>'+
+
+  (!started? '<div class="banner blue">'+ic('hourglass')+'<div>مسیر از '+fmtJFull(g.startSerial)+' شروع می‌شود. می‌توانی برنامه این روز را از قبل بنویسی.</div></div>':'')+
+  (g.paused? '<div class="banner amber">'+ic('pauseC')+'<div>مسیر متوقف است؛ ثبت نهایی در حالت توقف ممکن نیست.</div></div>':'')+
+
+  (rec.completed? summaryCard(g,n,rec) : '') +
+
+  '<div class="card"><h3>'+ic('listc')+'وظایف امروز</h3><p class="hint">وظایف این روز، مستقل از روزهای دیگر ذخیره می‌شود.</p>'+
+    '<div class="taskrow"><input class="f-in" id="t-text" placeholder="وظیفه جدید…" maxlength="120">'+
+    '<input class="f-in tin" id="t-time" type="time" title="ساعت (اختیاری)">'+
+    '<button class="taskadd" id="t-add">'+ic('plus')+'</button></div>'+
+    '<div class="tmeta"><span>انجام‌شده: <b style="color:var(--blue-dark)">'+fa(tasksDone)+' از '+fa(tasksAll)+'</b></span><span>'+fa(tpct)+'٪ تکمیل</span></div>'+
+    '<div class="tprog"><i style="width:'+tpct+'%"></i></div>'+
+    '<div class="mt8" id="t-list"></div>'+
+  '</div>'+
+
+  '<div class="card notes-grid"><h3>'+ic('feather')+'یادداشت روزانه</h3>'+
+    prompts.map(p=>'<div class="nlabel">'+ic(p[1])+p[2]+'</div><textarea class="f-ta" data-note="'+p[0]+'" placeholder="بنویس…">'+esc(rec.notes[p[0]]||'')+'</textarea>').join('')+
+  '</div>'+
+
+  (info.status==='missed'?
+    '<div class="card" style="border-color:var(--amber-line);background:#fffdf5"><h3 style="color:#92600a">'+ic('info')+'توضیح روز ناقص (اختیاری)</h3>'+
+    '<p class="hint">این روز بدون ثبت نهایی گذشته — هیچ مشکلی نیست. اگر دوست داری بنویس چه شد؛ مسیر طبق برنامه ادامه دارد.</p>'+
+    '<textarea class="f-ta" id="d-reflection" placeholder="مثلاً: مریض بودم، شرمنده خودم نیستم اما فردا ادامه می‌دهم…">'+esc(rec.reflection||'')+'</textarea></div>':'')+
+
+  '<div class="card"><h3>'+ic('star')+'ارزیابی عملکرد امروز</h3>'+
+    '<p class="hint">از عملکرد امروزت چقدر راضی بودی؟</p>'+
+    '<div class="stars" id="d-stars">'+[1,2,3,4,5].map(i=>'<button data-s="'+i+'" class="'+(rec.rating>=i?'on':'')+'">'+icf('star')+'</button>').join('')+'</div>'+
+    '<div class="nlabel">'+ic('feather')+'جمع‌بندی روز</div>'+
+    '<textarea class="f-ta" id="d-summary" placeholder="خلاصه‌ای از امروز…">'+esc(rec.summary||'')+'</textarea>'+
+    '<div class="nlabel">'+ic('timer')+'مدت تمرکز امروز</div>'+
+    '<div style="display:flex;align-items:center;gap:10px"><b style="font-size:19px;color:var(--blue-dark)">'+fa(rec.focusMin||0)+' دقیقه</b>'+
+    '<button class="btn btn-ghost small" data-focus="10">+۱۰</button><button class="btn btn-ghost small" data-focus="30">+۳۰</button>'+(rec.focusMin>=10?'<button class="btn btn-line small" data-focus="-10">−۱۰</button>':'')+'</div>'+
+  '</div>'+
+
+  '<div class="card"><div class="btnrow">'+
+    (canComplete? '<button class="btn btn-primary" id="d-complete">'+ic('check')+(rec.completed?'به‌روزرسانی ثبت روز':'ثبت و تکمیل روز')+'</button>':'')+
+    '<button class="btn btn-line" id="d-print">'+ic('printer')+'گزارش PDF</button>'+
+    '<button class="btn btn-line" id="d-json">'+ic('download')+'پشتیبان روز</button>'+
+  '</div></div>';
+
+  renderTaskList();
+  $('#d-back').onclick=()=>{ goView('path'); renderPath(); };
+  $('#t-add').onclick=addTask;
+  $('#t-text').addEventListener('keydown',e=>{ if(e.key==='Enter') addTask(); });
+  $$('#d-stars button').forEach(b=>b.onclick=()=>{ rec.rating=+b.dataset.s; save(); renderDay(); });
+  $$('[data-note]').forEach(t=>t.addEventListener('input',()=>{ rec.notes[t.dataset.note]=t.value; save(); }));
+  const rf=$('#d-reflection'); if(rf) rf.addEventListener('input',()=>{ rec.reflection=rf.value; save(); });
+  const sm=$('#d-summary'); if(sm) sm.addEventListener('input',()=>{ rec.summary=sm.value; save(); });
+  $$('[data-focus]').forEach(b=>b.onclick=()=>{ rec.focusMin=Math.max(0,(rec.focusMin||0)+ +b.dataset.focus); save(); renderDay(); });
+  const dc=$('#d-complete'); if(dc) dc.onclick=()=>completeDay(g,n);
+  $('#d-print').onclick=()=>printDay(g,n);
+  $('#d-json').onclick=()=>{
+    download('masir-rooz-'+n+'-'+g.id.slice(0,6)+'.json', JSON.stringify({type:'masir-day', goal:{name:g.name,icon:g.icon,totalDays:g.totalDays,startSerial:g.startSerial}, day:n, date:fmtJFull(info.serial), data:rec}, null, 2));
+    toast('فایل پشتیبان روز دانلود شد');
+  };
+
+  function addTask(){
+    const tx=$('#t-text'), ti=$('#t-time');
+    const text=tx.value.trim(); if(!text){ toast('متن وظیفه را بنویس','info'); return; }
+    rec.tasks.push({id:uid(), text, time:ti.value||'', done:false});
+    tx.value=''; save(); renderDay(); $('#t-text').focus();
+  }
+}
+
+function renderTaskList(){
+  const g=activeGoal(); const rec=dayRec(g,dayN);
+  const box=$('#t-list'); if(!box) return;
+  if(!rec.tasks.length){ box.innerHTML='<div class="tempty">هنوز وظیفه‌ای برای این روز ننوشته‌ای.<br>اولین وظیفه را خودت اضافه کن.</div>'; return; }
+  box.innerHTML=rec.tasks.map(t=>
+    '<div class="titem'+(t.done?' checked':'')+'" data-t="'+t.id+'">'+
+    '<button class="tcheck" data-act="toggle">'+ic('check')+'</button>'+
+    '<span class="ttxt">'+esc(t.text)+'</span>'+
+    (t.time? '<span class="ttime">'+fa(t.time)+'</span>':'')+
+    '<span class="tact"><button data-act="edit" title="ویرایش">'+ic('pencil','sm')+'</button><button class="del" data-act="del" title="حذف">'+ic('trash','sm')+'</button></span>'+
+    '</div>').join('');
+  box.querySelectorAll('.titem').forEach(row=>{
+    const t=rec.tasks.find(x=>x.id===row.dataset.t);
+    row.querySelector('[data-act=toggle]').onclick=()=>{ t.done=!t.done; save(); renderDay(); };
+    row.querySelector('[data-act=del]').onclick=async ()=>{ if(await modal({title:'حذف وظیفه',msg:'«'+clampTxt(t.text,40)+'» حذف شود؟',danger:true,okTxt:'حذف'})){ rec.tasks=rec.tasks.filter(x=>x.id!==t.id); save(); renderDay(); } };
+    row.querySelector('[data-act=edit]').onclick=()=>{
+      row.innerHTML='<input class="f-in" style="margin:0" value="'+esc(t.text)+'">'+
+        '<input class="f-in tin" style="margin:0;width:78px" type="time" value="'+t.time+'">'+
+        '<span class="tact"><button data-act="save" style="color:var(--blue)">'+ic('check','sm')+'</button></span>';
+      const ins=row.querySelectorAll('input');
+      row.querySelector('[data-act=save]').onclick=()=>{ const val=ins[0].value.trim(); if(val){ t.text=val; t.time=ins[1].value; } save(); renderDay(); };
+      ins[0].focus();
+    };
+  });
+}
+
+function summaryCard(g,n,rec){
+  const done=rec.tasks.filter(t=>t.done).length, all=rec.tasks.length;
+  return '<div class="card" style="background:linear-gradient(150deg,#16307a,#1d4ed8);color:#fff;border:none">'+
+    '<h3 style="color:#fff">'+ic('award')+'گزارش نهایی روز '+fa(n)+'</h3>'+
+    '<div style="font-size:11.5px;opacity:.8;margin-bottom:10px">'+fmtJFull(g.startSerial+n-1)+' · '+esc(g.name)+'</div>'+
+    '<div class="sumgrid">'+
+      '<div class="sumitem" style="background:rgba(255,255,255,.14)"><span style="color:rgba(255,255,255,.75)">وظایف انجام‌شده</span><b style="color:#fff">'+fa(done)+' از '+fa(all)+'</b></div>'+
+      '<div class="sumitem" style="background:rgba(255,255,255,.14)"><span style="color:rgba(255,255,255,.75)">مدت تمرکز</span><b style="color:#fff">'+fa(rec.focusMin||0)+' دقیقه</b></div>'+
+      '<div class="sumitem" style="background:rgba(255,255,255,.14)"><span style="color:rgba(255,255,255,.75)">رضایت از روز</span><b style="color:#fff">'+(rec.rating? fa(rec.rating)+' از ۵':'ثبت نشده')+'</b></div>'+
+      '<div class="sumitem" style="background:rgba(255,255,255,.14)"><span style="color:rgba(255,255,255,.75)">ثبت‌شده در</span><b style="color:#fff">'+(rec.lockedAt? faTime(new Date(rec.lockedAt).toLocaleTimeString('en-GB',{timeZone:'Asia/Tehran',hour:'2-digit',minute:'2-digit'})) :'—')+'</b></div>'+
+    '</div>'+
+    (rec.summary? '<div style="font-size:12px;background:rgba(255,255,255,.12);border-radius:12px;padding:9px 12px;line-height:1.9">'+esc(rec.summary)+'</div>':'')+
+  '</div>';
+}
+
+async function completeDay(g,n){
+  const rec=dayRec(g,n);
+  const isLate = n < currentDayIndex(g);
+  const ok=await modal({title: rec.completed? 'به‌روزرسانی گزارش روز' : 'پایان روز '+fa(n),
+    msg:(rec.completed?'گزارش این روز با اطلاعات فعلی به‌روزرسانی می‌شود.':(isLate?'این روز از گذشته است؛ با ثبت، به‌عنوان تکمیل‌شده (دیرهنگام) در آرشیو ذخیره می‌شود.':'وظایف، یادداشت‌ها و ارزیابی امروز ذخیره و به آرشیو منتقل می‌شود.')),
+    icon:'check', okTxt: rec.completed?'به‌روزرسانی':'ثبت نهایی'});
+  if(!ok) return;
+  rec.completed=true; rec.lockedAt=Date.now(); if(isLate) rec.completedLate=true;
+  save(); toast('روز '+fa(n)+' ثبت شد','award'); renderDay();
+}
+
+/* ---------- Print / PDF ---------- */
+function printDay(g,n){
+  const rec=dayRec(g,n); const info=dayInfo(g,n);
+  const done=rec.tasks.filter(t=>t.done), not=rec.tasks.filter(t=>!t.done);
+  const PL=[['did','کارهای انجام‌شده'],['progress','عوامل پیشرفت'],['problems','مشکلات'],['distract','مزاحمان تمرکز'],['tomorrow','برنامه بهتر برای فردا']];
+  $('#print-root').innerHTML=
+  '<div class="pr-head"><h1>گزارش روز '+fa(n)+' — '+esc(g.name)+'</h1><div class="pr-date">'+fmtJFull(info.serial)+'</div></div>'+
+  '<div class="pr-meta">'+
+    '<div>وضعیت: '+(rec.completed?'تکمیل‌شده':'در جریان / ناقص')+'</div>'+
+    '<div>وظایف: '+fa(done.length)+' از '+fa(rec.tasks.length)+'</div>'+
+    '<div>رضایت: '+(rec.rating?fa(rec.rating)+' از ۵':'—')+'</div>'+
+    '<div>تمرکز: '+fa(rec.focusMin||0)+' دقیقه</div>'+
+  '</div>'+
+  '<div class="pr-sec"><h3>وظایف روز</h3>'+
+    (rec.tasks.length? rec.tasks.map(t=>'<div class="pr-task"><span>'+esc(t.text)+(t.time?' <span style="color:#7487ab">('+fa(t.time)+')</span>':'')+'</span><span class="'+(t.done?'y':'n')+'">'+(t.done?'انجام شد':'انجام نشد')+'</span></div>').join('') : '<div class="pr-box">وظیفه‌ای ثبت نشده است.</div>')+
+  '</div>'+
+  '<div class="pr-sec"><h3>یادداشت‌های روزانه</h3>'+
+    PL.filter(p=>(rec.notes[p[0]]||'').trim()).map(p=>'<div class="pr-box"><b>'+p[1]+':</b> '+esc(rec.notes[p[0]])+'</div>').join('')+
+    (PL.every(p=>!(rec.notes[p[0]]||'').trim())? '<div class="pr-box">یادداشتی ثبت نشده است.</div>':'')+
+  '</div>'+
+  ((rec.reflection||'').trim()? '<div class="pr-sec"><h3>توضیح روز ناقص</h3><div class="pr-box">'+esc(rec.reflection)+'</div></div>':'')+
+  ((rec.summary||'').trim()? '<div class="pr-sec"><h3>جمع‌بندی روز</h3><div class="pr-box">'+esc(rec.summary)+'</div></div>':'')+
+  '<div class="pr-foot">این گزارش با برنامه «مسیر» تهیه شده است · مسیر '+fa(g.totalDays)+' روزه · شروع '+fmtJ(g.startSerial)+'</div>';
+  window.print();
+}
+</script>
+<script>
+'use strict';
+/* ================================================================
+   TIMERS ENGINE — real-time, persistent, background-safe
+================================================================ */
+function getTimer(id){
+  if(!state.timers[id]) state.timers[id]={dur:0,endAt:0,left:0,running:false,done:false,label:'',extra:{}};
+  return state.timers[id];
+}
+function fmtMS(ms){ ms=Math.max(0,ms); const s=Math.ceil(ms/1000); return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0'); }
+function tStart(t){ t.endAt=Date.now()+ (t.left>0? t.left : t.dur); t.running=true; t.done=false; save(); }
+function tPause(t){ if(!t.running) return; t.left=Math.max(0,t.endAt-Date.now()); t.running=false; save(); }
+function tReset(t){ t.running=false; t.left=t.dur; t.done=false; save(); }
+function onTimerEnd(id){
+  const t=getTimer(id);
+  Alarm.start(t.label||'زمان به پایان رسید');
+  const g=activeGoal();
+  if(g && t.extra && t.extra.log){
+    const idx=currentDayIndex(g);
+    if(idx>=1 && idx<=g.totalDays){
+      const rec=dayRec(g,idx);
+      rec.focusMin=(rec.focusMin||0)+Math.round(t.dur/60000);
+      toast(fa(Math.round(t.dur/60000))+' دقیقه تمرکز به روز '+fa(idx)+' اضافه شد','timer');
+    }
+  }
+  if(id==='pomo' && t.extra && t.extra.mode==='focus'){ t.extra.cycles=(t.extra.cycles||0)+1; }
+  if(id==='deep'){ const tot=(state.settings.deepTotal||0)+Math.round(t.dur/60000); state.settings.deepTotal=tot; }
+  save();
+  if(curView==='tools') renderTools();
+}
+function tickTimers(){
+  let changed=false;
+  for(const id in state.timers){
+    const t=state.timers[id];
+    if(t.running){
+      t.left=t.endAt-Date.now();
+      if(t.left<=0){ t.left=0; t.running=false; t.done=true; onTimerEnd(id); }
+      changed=true;
+    }
+    paintTimer(id,t);
+    if(window.syncTimerNative) syncTimerNative(id,t);
+  }
+  if(changed) save();
+}
+function paintTimer(id,t){
+  const timeEl=$('#'+id+'-time'); if(!timeEl) return;
+  timeEl.textContent=fa(fmtMS(t.left));
+  const dial=$('#'+id+'-dial-fg');
+  if(dial && t.dur>0){ const c=+dial.dataset.circ; dial.style.strokeDashoffset=(c*(1-clamp(t.left/t.dur,0,1))).toFixed(1); }
+  const st=$('#'+id+'-state');
+  if(st) st.textContent = t.done? 'تمام شد' : t.running? 'در حال اجرا' : (t.left<t.dur&&t.left>0? 'متوقف‌شده' : 'آماده');
+}
+function paintTimerBtn(id,t){
+  const b=$('#'+id+'-play'); if(!b) return;
+  b.innerHTML= t.running? ic('pause','lg') : ic('play','lg');
+}
+
+/* ================================================================
+   TOOLS VIEW
+================================================================ */
+let toolTab='pomo';
+function renderTools(){
+  if(window._medInt){ clearInterval(window._medInt); window._medInt=null; }
+  const v=$('#view-tools');
+  v.innerHTML=
+  '<div class="vhead"><h1>'+ic('timer','sm')+' ابزارهای تمرکز</h1></div>'+
+  '<div class="seg" id="tool-seg">'+
+    '<button data-t="pomo">'+ic('timer')+'پومودورو</button>'+
+    '<button data-t="med">'+ic('moon')+'مدیتیشن</button>'+
+    '<button data-t="deep">'+ic('brain')+'کار عمیق</button>'+
+    '<button data-t="ex">'+ic('sparkles')+'ضد حواس‌پرتی</button>'+
+  '</div>'+
+  '<div id="tool-panel"></div>';
+  $$('#tool-seg button').forEach(b=>{ b.classList.toggle('on',b.dataset.t===toolTab); b.onclick=()=>{ toolTab=b.dataset.t; renderTools(); }; });
+  const p=$('#tool-panel');
+  if(toolTab==='pomo') renderPomodoro(p);
+  else if(toolTab==='med') renderMeditation(p);
+  else if(toolTab==='deep') renderDeep(p);
+  else renderExercises(p);
+}
+function dialSVG(id, val){
+  const c=(2*Math.PI*100).toFixed(1);
+  return '<div class="dial"><svg width="218" height="218" viewBox="0 0 218 218">'+
+  '<defs><linearGradient id="dialgrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#60a5fa"/><stop offset="1" stop-color="#1d4ed8"/></linearGradient></defs>'+
+  '<circle class="dialbg" cx="109" cy="109" r="100" fill="none" stroke-width="13"/>'+
+  '<circle class="dialfg" id="'+id+'-dial-fg" data-circ="'+c+'" cx="109" cy="109" r="100" fill="none" stroke-width="13" stroke-dasharray="'+c+'" stroke-dashoffset="'+val+'"/>'+
+  '</svg><div class="dialtxt"><div class="tm" id="'+id+'-time">۰۰:۰۰</div><div class="st" id="'+id+'-state">آماده</div></div></div>';
+}
+function ctrlRow(id){
+  return '<div class="tctrl">'+
+    '<button class="round side" id="'+id+'-reset" title="بازنشانی">'+ic('reset')+'</button>'+
+    '<button class="round main" id="'+id+'-play" title="شروع / توقف">'+ic('play','lg')+'</button>'+
+    '<button class="round side" id="'+id+'-stop" title="توقف کامل">'+ic('stop')+'</button>'+
+  '</div>';
+}
+function bindTimer(id, getDurMin, labelFn, extra){
+  const t=getTimer(id);
+  if(!t.dur || t.extra.mode!==(extra&&extra.mode)){ if(extra&&extra.mode && t.extra.mode!==extra.mode && !t.running){ t.dur=getDurMin()*60000; t.left=t.dur; t.extra=extra; } }
+  const paint=()=>{ paintTimer(id,t); paintTimerBtn(id,t); };
+  $('#'+id+'-play').onclick=()=>{ ensureAudio(); if(t.running){ tPause(t);} else { if(!t.left || t.done){ t.dur=getDurMin()*60000; t.left=t.dur; } t.label=labelFn(); t.extra=Object.assign({},t.extra,extra); tStart(t);} paint(); };
+  $('#'+id+'-reset').onclick=()=>{ ensureAudio(); t.dur=getDurMin()*60000; t.left=t.dur; t.done=false; t.extra=Object.assign({},t.extra,extra); tReset(t); paint(); };
+  $('#'+id+'-stop').onclick=()=>{ ensureAudio(); tPause(t); t.left=t.dur=getDurMin()*60000; t.done=false; save(); paint(); };
+  paint();
+}
+
+/* ---------- Pomodoro ---------- */
+function renderPomodoro(p){
+  const s=state.settings.pom;
+  const t=getTimer('pomo'); const mode=t.extra.mode||'focus';
+  p.innerHTML='<div class="card timer-card">'+
+    '<span class="tmode'+(mode==='focus'?'':' break')+'" id="pomo-mode-lbl">'+(mode==='focus'?'زمان تمرکز':mode==='short'?'استراحت کوتاه':'استراحت طولانی')+'</span>'+
+    dialSVG('pomo', '0')+
+    '<div class="pomodots" id="pomo-dots"></div>'+
+    ctrlRow('pomo')+
+    '<div class="chips mt14" style="justify-content:center" id="pomo-modes">'+
+      '<button class="chip'+(mode==='focus'?' on':'')+'" data-m="focus">تمرکز</button>'+
+      '<button class="chip'+(mode==='short'?' on':'')+'" data-m="short">استراحت کوتاه</button>'+
+      '<button class="chip'+(mode==='long'?' on':'')+'" data-m="long">استراحت طولانی</button>'+
+    '</div>'+
+    '<div class="tset">'+
+      '<label>تمرکز (دقیقه)<input type="number" id="ps-focus" min="1" max="180" value="'+s.focus+'"></label>'+
+      '<label>استراحت کوتاه<input type="number" id="ps-short" min="1" max="60" value="'+s.short+'"></label>'+
+      '<label>استراحت طولانی<input type="number" id="ps-long" min="1" max="90" value="'+s.long+'"></label>'+
+    '</div>'+
+    '<div class="chips mt8" style="justify-content:center">'+
+      '<button class="chip" data-preset="25,5,15">کلاسیک ۲۵/۵/۱۵</button>'+
+      '<button class="chip" data-preset="50,10,20">عمیق ۵۰/۱۰/۲۰</button>'+
+      '<button class="chip" data-preset="15,3,10">سبک ۱۵/۳/۱۰</button>'+
+    '</div></div>'+
+    '<div class="banner blue mb0">'+ic('info')+'<div>پس از هر ۴ دوره تمرکز، یک استراحت طولانی پیشنهاد می‌شود. پایان هر تمرکز به‌صورت خودکار به دقیقه‌های تمرکز امروز اضافه می‌شود.</div></div>';
+
+  const curMode=()=> (getTimer('pomo').extra.mode||'focus');
+  const durOf=m=> (m==='focus'? +toEn($('#ps-focus').value)||25 : m==='short'? +toEn($('#ps-short').value)||5 : +toEn($('#ps-long').value)||15);
+  bindTimer('pomo', ()=>durOf(curMode()), ()=> (curMode()==='focus'?'پایان جلسه تمرکز':'پایان استراحت'), {mode:curMode(), log:true});
+
+  // ensure duration applied if fresh
+  if(!getTimer('pomo').dur){ getTimer('pomo').dur=durOf(curMode())*60000; getTimer('pomo').left=getTimer('pomo').dur; getTimer('pomo').extra={mode:'focus',log:true}; }
+  paintTimer('pomo',getTimer('pomo')); paintTimerBtn('pomo',getTimer('pomo'));
+
+  // mode chips
+  $$('#pomo-modes .chip').forEach(c=>c.onclick=()=>{
+    const t=getTimer('pomo'); t.extra.mode=c.dataset.m; t.running=false; t.dur=durOf(c.dataset.m)*60000; t.left=t.dur; t.done=false; save();
+    $$('#pomo-modes .chip').forEach(x=>x.classList.toggle('on',x===c));
+    $('#pomo-mode-lbl').textContent= c.dataset.m==='focus'?'زمان تمرکز':c.dataset.m==='short'?'استراحت کوتاه':'استراحت طولانی';
+    $('#pomo-mode-lbl').className='tmode'+(c.dataset.m==='focus'?'':' break');
+    paintTimer('pomo',t); paintTimerBtn('pomo',t);
+  });
+  // settings inputs
+  ['focus','short','long'].forEach(k=>{
+    $('#ps-'+k).onchange=e=>{
+      const val=clamp(parseInt(toEn(e.target.value))||1,1, k==='focus'?180:90);
+      e.target.value=val; state.settings.pom[k]=val; save();
+      const t=getTimer('pomo'); if(!t.running && curMode()===k){ t.dur=val*60000; t.left=t.dur; save(); paintTimer('pomo',t); }
+    };
+  });
+  $$('[data-preset]').forEach(b=>b.onclick=()=>{
+    const [a,bb,c]=b.dataset.preset.split(',').map(Number);
+    $('#ps-focus').value=a; $('#ps-short').value=bb; $('#ps-long').value=c;
+    state.settings.pom={focus:a,short:bb,long:c}; save();
+    const t=getTimer('pomo'); if(!t.running){ t.dur=durOf(curMode())*60000; t.left=t.dur; save(); paintTimer('pomo',t); }
+    toast('زمان‌ها تنظیم شد');
+  });
+  const dots=$('#pomo-dots');
+  const cy=(getTimer('pomo').extra.cycles||0)%4;
+  dots.innerHTML=[0,1,2,3].map(i=>'<i class="'+(i<cy?'on':'')+'"></i>').join('');
+}
+
+/* ---------- Meditation ---------- */
+function renderMeditation(p){
+  const t=getTimer('med');
+  if(!t.dur){ t.dur=state.settings.med*60000; t.left=t.dur; }
+  p.innerHTML='<div class="card timer-card">'+
+    '<span class="tmode">تمرین سکون و حضور</span>'+
+    '<div class="breath" id="med-breath"><span id="med-breath-txt">آماده</span></div>'+
+    dialSVG('med','0')+
+    ctrlRow('med')+
+    '<div class="chips mt14" style="justify-content:center" id="med-durs">'+
+      [3,5,10,15,20].map(m=>'<button class="chip'+(state.settings.med===m?' on':'')+'" data-m="'+m+'">'+fa(m)+' دقیقه</button>').join('')+
+    '</div></div>'+
+    '<div class="banner blue mb0">'+ic('info')+'<div>چشمانت را ببند، شانه‌ها را رها کن و فقط نفس بکش. حباب آبی با ریتم آرام باز و بسته می‌شود.</div></div>';
+  bindTimer('med', ()=>state.settings.med, ()=>'پایان مدیتیشن', {log:false});
+  $$('#med-durs .chip').forEach(c=>c.onclick=()=>{
+    state.settings.med=+c.dataset.m; save();
+    $$('#med-durs .chip').forEach(x=>x.classList.toggle('on',x===c));
+    const t=getTimer('med'); if(!t.running){ t.dur=state.settings.med*60000; t.left=t.dur; t.done=false; save(); paintTimer('med',t); }
+  });
+  // breathing cycle
+  if(window._medInt){ clearInterval(window._medInt); window._medInt=null; }
+  const b=$('#med-breath'), bt=$('#med-breath-txt');
+  let phase=0;
+  const cycle=()=>{ const t=getTimer('med');
+    if(!t.running){ b.className='breath'; bt.textContent=t.done?'آفرین':'آماده'; return; }
+    phase=(phase+1)%2;
+    b.className='breath '+(phase===0?'in':'out');
+    bt.textContent=phase===0?'دم':'بازدم';
+  };
+  window._medInt=setInterval(cycle,4000); cycle();
+  paintTimer('med',getTimer('med')); paintTimerBtn('med',getTimer('med'));
+}
+
+/* ---------- Deep Work ---------- */
+function renderDeep(p){
+  const t=getTimer('deep');
+  if(!t.dur){ t.dur=state.settings.deep*60000; t.left=t.dur; }
+  p.innerHTML='<div class="card timer-card">'+
+    '<span class="tmode">جلسه تمرکز عمیق</span>'+
+    dialSVG('deep','0')+
+    ctrlRow('deep')+
+    '<div class="chips mt14" style="justify-content:center" id="deep-durs">'+
+      [25,45,60,90,120].map(m=>'<button class="chip'+(state.settings.deep===m?' on':'')+'" data-m="'+m+'">'+fa(m)+'</button>').join('')+
+    '</div>'+
+    '<div class="tset" style="grid-template-columns:1fr"><label>مدت دلخواه (دقیقه)<input type="number" id="deep-custom" min="5" max="480" value="'+state.settings.deep+'"></label></div>'+
+  '</div>'+
+  '<div class="card" style="display:flex;align-items:center;gap:12px"><div class="sic" style="width:44px;height:44px;border-radius:13px;background:linear-gradient(135deg,var(--blue-faint),#dbeafe);color:var(--blue-dark);display:flex;align-items:center;justify-content:center;flex:0 0 auto">'+ic('brain')+'</div><div style="flex:1"><b style="font-size:14px">مجموع جلسات تکمیل‌شده</b><div style="font-size:11.5px;color:var(--muted)">از ابتدای استفاده از برنامه</div></div><b style="font-size:19px;color:var(--blue-dark)">'+fa(state.settings.deepTotal||0)+' دقیقه</b></div>'+
+  '<div class="banner blue mb0">'+ic('info')+'<div>در جلسه کار عمیق، گوشی را دور بینداز و فقط روی یک کار تمرکز کن. پایان جلسه، دقیقه‌هایش به‌صورت خودکار برای امروز ثبت می‌شود.</div></div>';
+  const curDur=()=> clamp(parseInt(toEn($('#deep-custom').value))||60,5,480);
+  bindTimer('deep', curDur, ()=>'پایان جلسه کار عمیق', {log:true});
+  $$('#deep-durs .chip').forEach(c=>c.onclick=()=>{
+    state.settings.deep=+c.dataset.m; $('#deep-custom').value=c.dataset.m; save();
+    $$('#deep-durs .chip').forEach(x=>x.classList.toggle('on',x===c));
+    const t=getTimer('deep'); if(!t.running){ t.dur=state.settings.deep*60000; t.left=t.dur; t.done=false; save(); paintTimer('deep',t); }
+  });
+  $('#deep-custom').onchange=e=>{ const v=clamp(parseInt(toEn(e.target.value))||60,5,480); e.target.value=v; state.settings.deep=v; save();
+    $$('#deep-durs .chip').forEach(x=>x.classList.remove('on'));
+    const t=getTimer('deep'); if(!t.running){ t.dur=v*60000; t.left=t.dur; t.done=false; save(); paintTimer('deep',t); } };
+  paintTimer('deep',getTimer('deep')); paintTimerBtn('deep',getTimer('deep'));
+}
+
+/* ---------- Anti-distraction exercises ---------- */
+const EXERCISES=[
+  {id:'e5', icon:'zap', title:'تکنیک شروع پنج‌دقیقه‌ای', desc:'برای وقتی که شروع‌کردن سخت است', timer:5,
+   steps:['یک کار خیلی کوچک از هدفت را انتخاب کن.','تایمر پنج دقیقه را بزن و فقط همان کار را شروع کن.','بعد از پنج دقیقه آزاد هستی ادامه بدهی یا ندهی — ولی معمولاً ادامه می‌دهی.'],
+   note:'هدف این تمرین فقط «شروع کردن» است، نه تمام کردن.'},
+  {id:'breath', icon:'wind', title:'تنفس آرام و کنترل‌شده', desc:'آرام‌سازی ذهن در چند چرخه',
+   steps:['صاف بنشین و شانه‌ها را رها کن.','۴ ثانیه آرام از بینی نفس بکش.','۲ ثانیه نگه دار.','۶ ثانیه آرام از دهان بازدم کن.','این چرخه را ۵ تا ۸ بار تکرار کن.'],
+   note:'اگر سرگیجه گرفتی، تمرین را متوقف کن و عادی نفس بکش.'},
+  {id:'env', icon:'sparkles', title:'تغییر محیط و پاک‌سازی', desc:'دورکردن عوامل حواس‌پرتی',
+   steps:['گوشی را روی حالت پرواز بگذار یا در اتاق دیگر بگذار.','فقط وسایل همان یک کار را روی میز نگه دار.','یک جای مرتب و روشن انتخاب کن؛ حتی جابه‌جایی به یک نقطه دیگر خانه کمک می‌کند.'],
+   note:'محیط مرتب، ذهن مرتب‌تر می‌سازد.'},
+  {id:'move', icon:'activity', title:'وقفه حرکتی کوتاه و سبک', desc:'بیدارکردن بدن و مغز',
+   steps:['۳۰ ثانیه آرام راه برو یا درجا قدم بزن.','چرخش‌های نرم شانه و گردن انجام بده.','چند حرکت کششی ملایم برای دست‌ها و پاها.','یک لیوان آب بنوش و برگرد.'],
+   note:'حرکت‌ها کاملاً اختیاری و متناسب با توان بدنت باشند؛ هیچ فشار یا اجباری در کار نیست.'},
+  {id:'split', icon:'scissors', title:'تقسیم کار بزرگ به تکه‌های کوچک', desc:'وقتی کار خیلی بزرگ به نظر می‌رسد',
+   steps:['کار بزرگ را روی کاغذ بنویس.','آن را به ۳ تا ۵ قدم کوچک و مشخص تقسیم کن.','فقط روی قدم اول تمرکز کن و بقیه را فعلاً فراموش کن.','هر قدم که تمام شد، آن را خط بزن.'],
+   note:'هر قدم باید آن‌قدر کوچک باشد که شروعش راحت باشد.'},
+  {id:'e1', icon:'clock', title:'یک دقیقه بازگشت به تمرکز', desc:'ریست سریع ذهن', timer:1,
+   steps:['هر کاری می‌کنی را رها کن و تایمر یک دقیقه را بزن.','به صدای محیط یا دم‌وبازدمت گوش بده.','بعد از یک دقیقه، آرام به کارت برگرد.'],
+   note:'این تمرین کوتاه، مدار توجه را دوباره تنظیم می‌کند.'}
+];
+function renderExercises(p){
+  p.innerHTML='<div class="banner blue">'+ic('info')+'<div>وقتی انگیزه یا تمرکز نداری، یکی از این تمرین‌های کوتاه را امتحان کن. همه ملایم، اختیاری و متناسب با توان تو هستند.</div></div>'+
+  EXERCISES.map((e,i)=>'<div class="excard" id="ex-'+e.id+'">'+
+    '<div class="exhead" data-ex="'+i+'"><div class="exic">'+ic(e.icon)+'</div><div class="ext"><b>'+e.title+'</b><span>'+e.desc+'</span></div><div class="chev">'+ic('chevD','sm')+'</div></div>'+
+    '<div class="exbody"><ol>'+e.steps.map(s=>'<li>'+s+'</li>').join('')+'</ol>'+
+    '<div class="exnote">'+ic('info','sm')+'<span>'+e.note+'</span></div>'+
+    (e.timer? '<div class="mt8" style="display:flex;align-items:center;gap:10px"><button class="btn btn-primary small" data-extimer="'+e.id+'">'+ic('play','sm')+'شروع تایمر '+fa(e.timer)+' دقیقه</button><b id="'+e.id+'-mini" style="font-size:17px;color:var(--blue-dark);font-variant-numeric:tabular-nums"></b></div>':'')+
+    '</div></div>').join('');
+  $$('[data-ex]').forEach(h=>h.onclick=()=>h.closest('.excard').classList.toggle('open'));
+  $$('[data-extimer]').forEach(b=>b.onclick=()=>{
+    const ex=EXERCISES.find(x=>x.id===b.dataset.extimer);
+    const t=getTimer('ex-'+ex.id); t.dur=ex.timer*60000; t.left=t.dur; t.done=false; t.label='پایان تمرین «'+ex.title+'»';
+    t.extra={}; tStart(t); toast('تایمر تمرین شروع شد','zap');
+    const mini=$('#'+ex.id+'-mini');
+    if(window['_int_'+ex.id]) clearInterval(window['_int_'+ex.id]);
+    window['_int_'+ex.id]=setInterval(()=>{
+      const tt=getTimer('ex-'+ex.id);
+      if(!document.contains(mini)){ clearInterval(window['_int_'+ex.id]); return; }
+      mini.textContent = tt.done? 'پایان' : fa(fmtMS(tt.left));
+      if(tt.done) clearInterval(window['_int_'+ex.id]);
+    },500);
+  });
+}
+
+/* ================================================================
+   ARCHIVE VIEW
+================================================================ */
+function renderArchive(){
+  const v=$('#view-archive');
+  const g=activeGoal();
+  const archived=Object.values(state.goals).filter(x=>x.status!=='active');
+  let html='<div class="vhead"><h1>'+ic('archive','sm')+' آرشیو و گزارش‌ها</h1></div>';
+
+  if(g){
+    const st=goalStats(g); const idx=currentDayIndex(g);
+    const finished=idx>g.totalDays||g.status!=='active';
+    html+='<div class="statgrid">'+
+      statBox('check', fa(st.done)+' روز','تکمیل‌شده')+
+      statBox('info', fa(st.missed)+' روز','ناقص / ازدست‌رفته')+
+      statBox('timer', fa(st.focus)+' دقیقه','مجموع تمرکز')+
+      statBox('star', st.avgRating? fa(st.avgRating.toFixed(1))+' از ۵':'—','میانگین رضایت')+
+    '</div>';
+    // chart
+    html+='<div class="card chartcard"><h3>'+ic('trend')+'روند پیشرفت روزانه</h3><p class="hint">درصد تکمیل هر روز تا امروز</p>'+chartSVG(g)+'</div>';
+    // final report
+    if(finished || st.done>0){
+      html+='<div class="card"><h3>'+ic('award')+'گزارش کلی مسیر</h3><div id="final-report">'+finalReport(g)+'</div></div>';
+    }
+    // days list
+    html+='<div class="card"><h3>'+ic('calendar')+'سوابق روزها</h3><p class="hint">برای دیدن گزارش کامل هر روز روی آن بزن.</p><div id="arch-days">';
+    const upto=Math.min(g.totalDays, Math.max(idx-1,0) + (idx>=1&&idx<=g.totalDays?1:0));
+    let any=false;
+    for(let n=Math.min(idx,g.totalDays); n>=1; n--){
+      const r=g.days? g.days[n]:null;
+      const s=dayStatus(g,n);
+      if(s==='future') continue;
+      any=true;
+      const done=r?r.tasks.filter(t=>t.done).length:0, all=r?r.tasks.length:0;
+      html+='<div class="arow '+s+'" data-open="'+n+'"><div class="an">'+fa(n)+'</div>'+
+        '<div class="at"><b>'+fmtJShort(g.startSerial+n-1)+' · '+weekdayOf(g.startSerial+n-1)+'</b><span>'+(s==='done'?'وظایف: '+fa(done)+' از '+fa(all)+(r&&r.focusMin?' · '+fa(r.focusMin)+' دقیقه تمرکز':''):s==='current'?'روز جاری — در حال انجام':'ثبت نشده')+'</span></div>'+
+        (r&&r.rating? '<span class="rate">'+Array.from({length:r.rating},()=>icf('star')).join('')+'</span>':'')+
+        '<div class="chev">'+ic('chevL','sm')+'</div></div>';
+    }
+    if(!any) html+='<div class="emptyday">'+ic('archive','lg')+'هنوز روزی از مسیر سپری نشده است.</div>';
+    html+='</div></div>';
+  }
+
+  if(archived.length){
+    html+='<div class="card"><h3>'+ic('archive')+'مسیرهای آرشیوشده</h3>'+
+    archived.map(x=>{ const s=goalStats(x); return '<div class="goalrow"><div class="gi">'+ic(x.icon||'flag')+'</div><div class="gt"><b>'+esc(x.name)+'</b><span>'+fa(x.totalDays)+' روزه · '+fa(s.done)+' روز تکمیل‌شده · '+fmtJShort(x.startSerial)+'</span></div>'+
+      '<button class="btn btn-ghost small" data-arestore="'+x.id+'">'+ic('upload','sm')+'</button><button class="btn btn-danger small" data-adel="'+x.id+'">'+ic('trash','sm')+'</button></div>'; }).join('')+
+    '</div>';
+  }
+  if(!g && !archived.length){
+    html+='<div class="card"><div class="emptyday">'+ic('archive','lg')+'هنوز هدفی ساخته نشده است.<br><br><button class="btn btn-primary" id="arch-create">'+ic('plus')+'ساخت اولین هدف</button></div></div>';
+  }
+  v.innerHTML=html;
+  $$('#arch-days [data-open]').forEach(r=>r.onclick=()=>openDay(+r.dataset.open));
+  $$('#view-archive [data-arestore]').forEach(b=>b.onclick=async ()=>{
+    if(activeGoal()){ toast('ابتدا هدف فعلی را آرشیو کن','info'); return; }
+    const x=state.goals[b.dataset.arestore]; x.status='active'; state.activeGoalId=x.id; save(); toast('هدف بازگردانی شد'); goView('path'); renderPath();
+  });
+  $$('#view-archive [data-adel]').forEach(b=>b.onclick=async ()=>{
+    const x=state.goals[b.dataset.adel];
+    if(await modal({title:'حذف مسیر آرشیوشده', msg:'«'+x.name+'» و همه گزارش‌هایش برای همیشه حذف می‌شود.', danger:true, okTxt:'حذف دائمی'})){
+      delete state.goals[x.id]; save(); toast('حذف شد','trash'); renderArchive();
+    }
+  });
+  const ac=$('#arch-create'); if(ac) ac.onclick=()=>{ goView('home'); renderHome(); };
+}
+function statBox(icon,big,small){
+  return '<div class="statc"><div class="sic">'+ic(icon)+'</div><div><b>'+big+'</b><span>'+small+'</span></div></div>';
+}
+function chartSVG(g){
+  const idx=currentDayIndex(g);
+  const upto=Math.min(g.totalDays, Math.max(idx,1));
+  const W=320,H=130,pad=16;
+  const vals=[];
+  for(let n=1;n<=upto;n++){
+    const r=g.days?g.days[n]:null; const s=dayStatus(g,n);
+    let v=null;
+    if(s==='done') v= r&&r.tasks.length? Math.round(r.tasks.filter(t=>t.done).length/r.tasks.length*100):100;
+    else if(s==='missed') v=0;
+    else if(s==='current') v= r&&r.tasks.length? Math.round(r.tasks.filter(t=>t.done).length/r.tasks.length*100):5;
+    vals.push({n,v,s});
+  }
+  const step= upto>1? (W-2*pad)/(upto-1):0;
+  const pts=vals.map((d,i)=>({x:pad+i*step, y: d.v==null? null : H-14-(d.v/100)*(H-34), ...d}));
+  const line=pts.filter(p=>p.y!=null);
+  let poly=line.map((p,i)=>(i===0?'M':'L')+p.x.toFixed(1)+' '+p.y.toFixed(1)).join(' ');
+  let area= line.length>1? poly+' L '+line[line.length-1].x.toFixed(1)+' '+(H-14)+' L '+line[0].x.toFixed(1)+' '+(H-14)+' Z':'';
+  return '<svg viewBox="0 0 '+W+' '+H+'">'+
+    '<defs><linearGradient id="chf" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3b82f6" stop-opacity=".28"/><stop offset="1" stop-color="#3b82f6" stop-opacity="0"/></linearGradient></defs>'+
+    [25,50,75].map(y=>'<line x1="'+pad+'" x2="'+(W-pad)+'" y1="'+(H-14-(y/100)*(H-34))+'" y2="'+(H-14-(y/100)*(H-34))+'" stroke="#e4eeff" stroke-width="1" stroke-dasharray="3 5"/>').join('')+
+    (area? '<path d="'+area+'" fill="url(#chf)"/>':'')+
+    (poly? '<path d="'+poly+'" fill="none" stroke="#2563eb" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>':'')+
+    pts.filter(p=>p.y!=null).map(p=>'<circle cx="'+p.x.toFixed(1)+'" cy="'+p.y+'" r="'+(upto>45?2:3.4)+'" fill="'+(p.s==='missed'?'#f59e0b':p.s==='current'?'#fff':'#2563eb')+'" stroke="'+(p.s==='current'?'#2563eb':'#fff')+'" stroke-width="1.6"/>').join('')+
+    '<text x="'+pad+'" y="'+(H-2)+'" font-size="8" fill="#7487ab" text-anchor="start">روز ۱</text>'+
+    (upto>1?'<text x="'+(W-pad)+'" y="'+(H-2)+'" font-size="8" fill="#7487ab" text-anchor="end">روز '+fa(upto)+'</text>':'')+
+  '</svg>';
+}
+function finalReport(g){
+  const st=goalStats(g); const idx=currentDayIndex(g);
+  // best days
+  let best=[]; for(let n=1;n<=g.totalDays;n++){ const r=g.days?g.days[n]:null; if(r&&r.rating>=4) best.push(n); }
+  // streak
+  let streak=0,maxStreak=0;
+  for(let n=1;n<=Math.min(idx-1,g.totalDays);n++){ const r=g.days?g.days[n]:null; if(r&&r.completed){streak++; maxStreak=Math.max(maxStreak,streak);} else streak=0; }
+  // recurring issues
+  const issues=[];
+  for(let n=1;n<=g.totalDays;n++){ const r=g.days?g.days[n]:null; if(r){ if((r.notes.problems||'').trim()) issues.push({n,t:r.notes.problems}); if((r.notes.distract||'').trim()) issues.push({n,t:r.notes.distract}); } }
+  const shownIssues=issues.slice(-4);
+  return '<div class="sumgrid">'+
+    '<div class="sumitem"><span>پیشرفت کل</span><b>'+fa(st.pct)+'٪</b></div>'+
+    '<div class="sumitem"><span>طولانی‌ترین تداوم</span><b>'+fa(maxStreak)+' روز پیاپی</b></div>'+
+    '<div class="sumitem"><span>وظایف انجام‌شده</span><b>'+fa(st.tasksDone)+' از '+fa(st.tasksAll)+'</b></div>'+
+    '<div class="sumitem"><span>بهترین روزها</span><b>'+(best.length? best.map(n=>fa(n)).join('، ') : '—')+'</b></div>'+
+  '</div>'+
+  (shownIssues.length? '<div class="nlabel">'+ic('info')+'چالش‌های تکرارشونده در مسیر</div>'+shownIssues.map(i=>'<div class="exnote" style="margin-bottom:6px">'+ic('flag','sm')+'<span><b>روز '+fa(i.n)+':</b> '+esc(clampTxt(i.t,90))+'</span></div>').join('') : '<div class="hint">چالش خاصی ثبت نشده است.</div>');
+}
+
+/* ================================================================
+   MORE / SETTINGS VIEW
+================================================================ */
+function renderMore(){
+  const v=$('#view-more'); const g=activeGoal();
+  let html='<div class="vhead"><h1>'+ic('gear','sm')+' تنظیمات و مدیریت</h1></div>';
+  if(g){
+    const st=goalStats(g); const finished=currentDayIndex(g)>g.totalDays;
+    html+='<div class="card"><h3>'+(g.icon?ic(g.icon):ic('flag'))+esc(g.name)+'</h3>'+
+      '<p class="hint">'+fa(g.totalDays)+' روزه · شروع '+fmtJFull(g.startSerial)+' · '+fa(st.pct)+'٪ پیشرفت'+(g.paused?' · <b style="color:var(--amber)">متوقف</b>':'')+'</p>'+
+      '<div class="btnrow"><button class="btn btn-ghost" id="m-edit">'+ic('pencil')+'ویرایش</button>'+
+      '<button class="btn btn-ghost" id="m-pause">'+ic(g.paused?'playC':'pauseC')+(g.paused?'ادامه مسیر':'توقف موقت')+'</button></div>'+
+      '<div class="btnrow mt8"><button class="btn btn-line" id="m-finish">'+ic('award')+'پایان دادن به مسیر</button>'+
+      '<button class="btn btn-line" id="m-exportg">'+ic('download')+'پشتیبان این مسیر</button></div>'+
+      '<div class="btnrow mt8"><button class="btn btn-danger" id="m-archive">'+ic('archive')+'آرشیو</button>'+
+      '<button class="btn btn-danger" id="m-delete">'+ic('trash')+'حذف کامل</button></div></div>';
+  } else {
+    html+='<div class="card"><div class="emptyday">'+ic('flag','lg')+'هدف فعالی وجود ندارد.<br><br><button class="btn btn-primary" id="m-new">'+ic('plus')+'ساخت هدف جدید</button></div></div>';
+  }
+  html+='<div class="card"><h3>'+ic('download')+'پشتیبان‌گیری و بازیابی</h3>'+
+    '<p class="hint">اطلاعات به‌صورت خودکار در حافظه همین مرورگر ذخیره می‌شود. برای اطمینان بیشتر، فایل پشتیبان بگیر.</p>'+
+    '<div class="btnrow"><button class="btn btn-primary" id="m-export">'+ic('download')+'دانلود پشتیبان کامل (JSON)</button>'+
+    '<button class="btn btn-line" id="m-import">'+ic('upload')+'واردکردن پشتیبان</button></div>'+
+    '<input type="file" id="m-file" accept="application/json" class="hidden"></div>';
+  html+='<div class="card"><h3>'+ic('volume')+'صدا و هشدارها</h3>'+
+    '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px"><span style="font-size:13px;font-weight:700">هشدار صوتی پایان تایمرها</span>'+
+    '<button class="chip'+(state.settings.sound?' on':'')+'" id="m-sound">'+(state.settings.sound?'روشن':'خاموش')+'</button></div>'+
+    '<label class="f-label">بلندی صدا</label><input type="range" id="m-vol" min="0" max="100" value="'+Math.round(state.settings.volume*100)+'" style="width:100%;accent-color:#2563eb">'+
+    '<button class="btn btn-ghost btn-block mt8" id="m-test">'+ic('bell')+'آزمایش صدا</button></div>';
+  html+='<div class="card"><h3>'+ic('info')+'درباره برنامه</h3><p class="hint" style="line-height:2">«مسیر» — همراه روزبه‌روز تو برای رسیدن به اهداف. همه داده‌ها فقط روی دستگاه خودت ذخیره می‌شوند و هیچ اطلاعاتی به جایی ارسال نمی‌شود. تاریخ و ساعت بر اساس تقویم شمسی و منطقه زمانی ایران است.</p>'+
+    '<div style="font-size:11px;color:var(--muted)">امروز: '+fmtJFull(todaySerial())+' · ساعت <span id="live-clock">'+nowClockFull()+'</span></div></div>';
+  html+='<div class="card" style="border-color:#fecdd3"><h3 style="color:var(--red)">'+ic('trash')+'پاک‌سازی کامل</h3><p class="hint">همه اهداف، گزارش‌ها و تنظیمات برای همیشه حذف می‌شود. قبلش حتماً پشتیبان بگیر.</p><button class="btn btn-danger btn-block" id="m-wipe">حذف همه اطلاعات برنامه</button></div>';
+  v.innerHTML=html;
+
+  if(g){
+    $('#m-edit').onclick=()=>{ editGoalId=g.id; goView('home'); renderHome(); window.scrollTo(0,0); };
+    $('#m-pause').onclick=async ()=>{
+      if(!g.paused){
+        if(await modal({title:'توقف موقت مسیر', msg:'شمارش روزها متوقف می‌شود و با «ادامه مسیر»، تقویم به‌صورت خودکار جابه‌جا می‌شود تا هیچ روزی از دست نرود.', icon:'pauseC', okTxt:'توقف'})){
+          g.paused=true; g.pausedAtSerial=todaySerial(); save(); toast('مسیر متوقف شد','pauseC'); renderMore();
+        }
+      } else {
+        const delta=todaySerial()-g.pausedAtSerial;
+        g.startSerial+=delta; g.paused=false; g.pausedAtSerial=null; save();
+        toast('مسیر ادامه یافت — روزها جابه‌جا شدند','playC'); renderMore();
+      }
+    };
+    $('#m-finish').onclick=async ()=>{
+      if(await modal({title:'پایان مسیر', msg:'مسیر «'+g.name+'» به پایان می‌رسد و گزارش نهایی آن در آرشیو باقی می‌ماند. بعداً می‌توانی آن را آرشیو یا بازگردانی کنی.', icon:'award', okTxt:'پایان مسیر'})){
+        g.status='completed'; state.activeGoalId=null; save(); toast('مسیر به پایان رسید — گزارش در آرشیو','award'); goView('archive'); renderArchive();
+      }
+    };
+    $('#m-exportg').onclick=()=>{
+      download('masir-goal-'+g.name.replace(/\s+/g,'-')+'.json', JSON.stringify({type:'masir-goal', goal:g}, null, 2));
+      toast('پشتیبان مسیر دانلود شد');
+    };
+    $('#m-archive').onclick=async ()=>{
+      if(await modal({title:'آرشیو مسیر', msg:'«'+g.name+'» به آرشیو منتقل می‌شود؛ گزارش‌ها حفظ می‌شوند و می‌توانی دوباره بازگردانی کنی.', icon:'archive', okTxt:'آرشیو'})){
+        g.status='archived'; state.activeGoalId=null; save(); toast('به آرشیو منتقل شد','archive'); goView('home'); renderHome();
+      }
+    };
+    $('#m-delete').onclick=async ()=>{
+      const ok=await modal({title:'حذف کامل مسیر', msg:'«'+g.name+'» و همه روزها، وظایف و گزارش‌هایش برای همیشه حذف می‌شود. این کار قابل بازگشت نیست!', danger:true, okTxt:'حذف برای همیشه'});
+      if(!ok) return;
+      const ok2=await modal({title:'مطمئنی؟', msg:'آخرین تأیید — همه اطلاعات این مسیر پاک می‌شود.', danger:true, okTxt:'بله، حذف کن'});
+      if(!ok2) return;
+      delete state.goals[g.id]; state.activeGoalId=null; save(); toast('مسیر حذف شد','trash'); goView('home'); renderHome();
+    };
+  }
+  const mn=$('#m-new'); if(mn) mn.onclick=()=>{ goView('home'); renderHome(); };
+  $('#m-export').onclick=()=>{ download('masir-backup-'+Date.now()+'.json', JSON.stringify(Object.assign({type:'masir-full'},state), null, 2)); toast('فایل پشتیبان دانلود شد'); };
+  $('#m-import').onclick=()=>$('#m-file').click();
+  $('#m-file').onchange=async e=>{
+    const f=e.target.files[0]; if(!f) return;
+    try{
+      const txt=await f.text(); const data=JSON.parse(txt);
+      let next=null;
+      if(data && data.goals) next={v:1, activeGoalId:data.activeGoalId||null, goals:data.goals, timers:{}, settings:Object.assign(defaultState().settings, data.settings||{})};
+      else if(data && data.type==='masir-goal' && data.goal){
+        next=state; const gl=data.goal; gl.id=gl.id||uid(); if(state.goals[gl.id]) gl.id=uid();
+        const okI=await modal({title:'واردکردن مسیر', msg:'مسیر «'+gl.name+'» به برنامه اضافه شود؟', icon:'upload', okTxt:'اضافه کن'});
+        if(okI){ gl.status='archived'; state.goals[gl.id]=gl; save(); toast('مسیر وارد شد'); renderMore(); }
+        return;
+      } else { toast('فایل پشتیبان معتبر نیست','info'); return; }
+      const ok=await modal({title:'بازیابی پشتیبان', msg:'اطلاعات فعلی برنامه با نسخه پشتیبان جایگزین می‌شود. ادامه می‌دهی؟', danger:true, icon:'upload', okTxt:'جایگزین کن'});
+      if(!ok) return;
+      state=next; saveNow(); toast('اطلاعات بازیابی شد'); boot(true);
+    }catch(err){ toast('خواندن فایل ممکن نشد','info'); }
+    e.target.value='';
+  };
+  $('#m-sound').onclick=()=>{ state.settings.sound=!state.settings.sound; save(); renderMore(); };
+  $('#m-vol').oninput=e=>{ state.settings.volume=clamp(+e.target.value,0,100)/100; save(); };
+  $('#m-test').onclick=testSound;
+  $('#m-wipe').onclick=async ()=>{
+    const ok=await modal({title:'پاک‌سازی کامل', msg:'همه اهداف، گزارش‌ها، تایمرها و تنظیمات برای همیشه حذف می‌شود.', danger:true, okTxt:'حذف همه چیز'});
+    if(!ok) return;
+    localStorage.removeItem(LS_KEY); state=defaultState(); saveNow(); toast('برنامه بازنشانی شد'); boot(true);
+  };
+}
+
+/* ================================================================
+   BOOT
+================================================================ */
+function boot(rerender){
+  loadState();
+  renderNav();
+  const g=activeGoal();
+  if(g){ goView('path'); renderPath(); }
+  else { editGoalId=null; goView('home'); renderHome(); }
+  // recover running timers
+  for(const id in state.timers){ const t=state.timers[id]; if(t.running){ t.left=Math.max(0,t.endAt-Date.now()); if(t.left<=0){ t.left=0; t.running=false; t.done=true; onTimerEnd(id); } } }
+}
+document.addEventListener('visibilitychange',()=>{ if(!document.hidden){ tickTimers(); } });
+window.addEventListener('beforeunload',saveNow);
+window.addEventListener('resize',()=>{ if(curView==='path') renderPath(); });
+document.addEventListener('DOMContentLoaded',()=>boot());
+</script>
+
+<script>
+/* ================================================================
+   ANDROID BRIDGE + SCHEDULED ALERTS + LOCAL FONTS + SERVICE WORKER
+   (لایه افزودنی — هیچ‌کدام از کدهای قبلی را بازنویسی نمی‌کند)
+================================================================ */
+(function(){
+'use strict';
+
+/* ---------- 1) پل بومی اندروید (MasirNative) ---------- */
+function nativeOk(){ try{ return typeof window.MasirNative!=='undefined' && window.MasirNative!==null; }catch(e){ return false; } }
+function ncall(fn){
+  if(!nativeOk()) return null;
+  try{ return window.MasirNative[fn].apply(window.MasirNative, Array.prototype.slice.call(arguments,1)); }
+  catch(e){ try{ console.warn('native call failed',fn,e); }catch(_){} return null; }
+}
+function timerName(id,t){
+  if(id==='pomo') return 'پومودورو — '+(t.extra&&t.extra.mode==='focus'?'تمرکز':'استراحت');
+  if(id==='med') return 'مدیتیشن';
+  if(id==='deep') return 'کار عمیق';
+  if(t.label) return t.label;
+  return 'تایمر';
+}
+/* همگام‌سازی خودکار وضعیت تایمر وب با سرویس اندروید (بر اساس امضا) */
+window.syncTimerNative=function(id,t){
+  if(!nativeOk() || !t) return;
+  try{
+    const sig = t.running ? ('r|'+t.endAt) : ('p|'+Math.round(t.left/1000));
+    if(t._sig===sig) return;
+    t._sig=sig;
+    if(t.running && t.endAt>Date.now()){
+      ncall('startTimer', String(id), String(timerName(id,t)), Number(t.endAt));
+    } else if(t.left>0 && t.left<(t.dur||0)){
+      ncall('pauseTimer', String(id), Number(Math.round(t.left)));
+    } else if(t.left>0){
+      /* بازنشانی/توقف کامل توسط کاربر */
+      ncall('stopTimer', String(id));
+    }
+    /* اگر left===0 یعنی تایمر طبیعاً تمام شده؛ خود سرویس اندروید اعلان پایان را می‌سازد */
+  }catch(e){}
+};
+/* بازیابی وضعیت تایمرها از سرویس اندروید (هنگام بازگشت به برنامه یا بارگذاری صفحه) */
+function syncFromNative(){
+  if(!nativeOk()) return;
+  const raw=ncall('getTimerStates');
+  if(!raw) return;
+  let map; try{ map=JSON.parse(raw); }catch(e){ return; }
+  let changed=false;
+  for(const id in state.timers){
+    const t=state.timers[id]; const n=map[id];
+    if(!n) continue;
+    if(n.running && n.endAt>Date.now()){
+      t.running=true; t.endAt=Number(n.endAt); t.left=Math.max(0,t.endAt-Date.now()); t.done=false;
+    } else if(!n.running && typeof n.left==='number' && n.left>0){
+      t.running=false; t.left=Number(n.left); t.done=false;
+    } else if(n.ended){
+      t.running=false; t.left=0; t.done=true;
+    }
+    t._sig = t.running? ('r|'+t.endAt) : ('p|'+Math.round(t.left/1000));
+    changed=true;
+  }
+  if(changed){ save(); if(curView==='tools'){ renderTools(); } }
+}
+window.__nativeResume=function(){ syncFromNative(); };
+/* فراخوانی‌شده از Kotlin وقتی کاربر از روی اعلان دکمه‌ای می‌زند */
+window.MasirNativeAction=function(id,action,payload){
+  try{
+    if(typeof state==='undefined' || !state) return;
+    const t=state.timers[id];
+    if(t){
+      if(action==='pause'){ t.running=false; t.left=Math.max(0,Number(payload)||t.left); t.done=false; }
+      else if(action==='play'){ t.running=true; t.endAt=Number(payload)||Date.now()+t.left; t.done=false; }
+      else if(action==='stop'){ t.running=false; t.left=t.dur||t.left; t.done=false; }
+      else if(action==='ended'){ t.running=false; t.left=0; t.done=true; }
+      t._sig = t.running? ('r|'+t.endAt) : ('p|'+Math.round(t.left/1000));
+      save();
+      paintTimer(id,t); paintTimerBtn(id,t);
+    }
+    if(action==='ended'){ Alarm.start('تایمر به پایان رسید'); }
+    if(curView==='tools') renderTools();
+  }catch(e){}
+};
+
+/* ---------- 2) اعلان‌های زمان‌بندی‌شده ---------- */
+function alertEpoch(serial,hhmm){
+  const g=d2g(serial);
+  const p=String(hhmm||'09:00').split(':');
+  const h=clamp(parseInt(p[0])||0,0,23), m=clamp(parseInt(p[1])||0,0,59);
+  /* ساعت ایران = UTC+3:30 (بدون ساعت تابستانی) */
+  return Date.UTC(g.gy, g.gm-1, g.gd, h, m, 0) - (3.5*3600*1000);
+}
+function syncAlert(a){
+  if(!a) return;
+  a.epoch=alertEpoch(a.serial,a.time);
+  if(nativeOk()){
+    if(a.enabled && a.epoch>Date.now()-60000) ncall('scheduleAlert', String(a.id), String(a.title), String(a.desc||''), Number(a.epoch));
+    else ncall('cancelAlert', String(a.id));
+  }
+}
+function requestAlertPermission(){
+  if(nativeOk()){ ncall('requestNotificationPermission'); toast('درخواست مجوز اعلان ارسال شد'); return; }
+  if('Notification' in window){
+    try{ Notification.requestPermission().then(p=>toast(p==='granted'?'اجازه نمایش اعلان داده شد':'اجازه داده نشد','bell')); }catch(e){ toast('درخواست مجوز ممکن نشد','info'); }
+    return;
+  }
+  toast('این مرورگر از اعلان پشتیبانی نمی‌کند','info');
+}
+function requestExactAlarmPermission(){
+  if(nativeOk()){ ncall('requestExactAlarm'); toast('صفحه دسترسی «اعلان دقیق» باز شد'); }
+  else toast('در نسخه وب این دسترسی لازم نیست','info');
+}
+/* بررسی اعلان‌ها فقط در نسخه وب (بدون اندروید) و هنگام باز بودن صفحه */
+function checkWebAlerts(){
+  if(typeof state==='undefined' || !state || !state.alerts) return;
+  if(nativeOk() || !state.alerts.length) return;
+  const now=Date.now(); let fired=false;
+  state.alerts.forEach(a=>{
+    if(!a.enabled || a.fired) return;
+    if(!a.epoch) a.epoch=alertEpoch(a.serial,a.time);
+    if(a.epoch<=now){
+      a.fired=now; fired=true;
+      Alarm.start('یادآوری: '+a.title);
+      toast('یادآوری: '+a.title,'bell');
+      if('Notification' in window && Notification.permission==='granted'){ try{ new Notification(a.title,{body:a.desc||'یادآوری برنامه مسیر'}); }catch(e){} }
+    }
+  });
+  if(fired) save();
+}
+setInterval(checkWebAlerts,2000);
+
+/* ---------- 3) نمای اعلان‌ها ---------- */
+let alertEditId=null;
+function renderAlerts(){
+  const v=$('#view-alerts'); if(!v) return;
+  if(!state.alerts) state.alerts=[];
+  const now=Date.now();
+  const editing=alertEditId? state.alerts.find(a=>a.id===alertEditId) : null;
+  const tj=todayJ();
+  const nativeMode=nativeOk();
+  v.innerHTML=
+  '<div class="vhead"><h1>'+ic('bell','sm')+' اعلان‌های زمان‌بندی‌شده</h1></div>'+
+
+  '<div class="banner '+(nativeMode?'green':'blue')+'">'+ic(nativeMode?'bell':'info')+
+    '<div>'+(nativeMode?
+      'نسخه اندروید فعال است؛ اعلان‌ها توسط سیستم عامل و حتی پس از بستن برنامه نمایش داده می‌شوند.':
+      'نسخه وب: اعلان‌ها فقط تا زمانی که این صفحه باز است بررسی می‌شوند. برای اعلان در پس‌زمینه، APK را نصب کن.')+
+    '</div></div>'+
+
+  '<div class="card"><h3>'+ic(nativeMode?'check':'plus')+(editing?'ویرایش اعلان':'اعلان جدید')+'</h3>'+
+    '<label class="f-label">عنوان اعلان<input class="f-in" id="al-title" maxlength="70" placeholder="مثلاً: زمان ثبت گزارش امروز" value="'+(editing?esc(editing.title):'')+'"></label>'+
+    '<label class="f-label">توضیح (اختیاری)<input class="f-in" id="al-desc" maxlength="140" placeholder="متن کوتاه زیر عنوان" value="'+(editing?esc(editing.desc||''):'')+'"></label>'+
+    '<div class="f-label">تاریخ (شمسی)</div>'+
+    '<div class="date-row"><select class="f-sel" id="al-dd"></select><select class="f-sel" id="al-mm"></select><select class="f-sel" id="al-yy"></select></div>'+
+    '<div class="f-label">ساعت (۲۴ ساعته)</div>'+
+    '<input class="f-in" id="al-time" type="time" value="'+(editing?esc(editing.time):'09:00')+'">'+
+    '<div class="btnrow mt14">'+
+      '<button class="btn btn-primary" id="al-save">'+ic('check')+(editing?'ذخیره تغییرات':'ساخت اعلان')+'</button>'+
+      (editing?'<button class="btn btn-line" id="al-cancel">انصراف</button>':'')+
+    '</div></div>'+
+
+  '<div class="card"><h3>'+ic('volume')+'مجوزها</h3><p class="hint">برای نمایش اعلان بومی، اجازه لازم است.</p>'+
+    '<div class="btnrow"><button class="btn btn-ghost" id="al-perm">'+ic('bell')+'اجازه اعلان‌ها</button>'+
+    '<button class="btn btn-ghost" id="al-exact">'+ic('clock')+'اعلان دقیق ساعت</button></div>'+
+    '<p class="hint" style="margin-top:10px">وضعیت دسترسی دقیق: '+(nativeMode? ((ncall('hasExactAlarm')===false)?'<b style="color:var(--amber)">دست داده نشده</b>':'<b style="color:var(--green)">در دسترس</b>'):'—')+'</p></div>'+
+
+  '<div class="card"><h3>'+ic('listc')+'فهرست اعلان‌ها ('+fa(state.alerts.length)+')</h3>'+
+    (state.alerts.length? state.alerts.slice().sort((a,b)=>a.epoch-b.epoch).map(a=>{
+      const past=a.epoch<=now, done=!!a.fired;
+      return '<div class="arow '+(done?'done':past?'missed':'future')+'" style="cursor:default">'+
+        '<div class="an" style="'+(done?'background:linear-gradient(135deg,#3b82f6,#1d4ed8);color:#fff':past?'background:var(--amber-soft);color:var(--amber)':'background:var(--blue-faint);color:var(--blue-dark)')+'">'+ic('bell','sm')+'</div>'+
+        '<div class="at"><b>'+esc(a.title)+'</b><span>'+fmtJFull(a.serial)+' — '+fa(a.time)+(a.enabled?'':' · غیرفعال')+(done?' · اجرا شد':past?' · زمان گذشته':'')+'</span></div>'+
+        '<span class="tact"><button data-aon="'+a.id+'" title="فعال/غیرفعال" style="color:'+(a.enabled?'var(--green)':'var(--muted)')+'">'+ic(a.enabled?'check':'x','sm')+'</button>'+
+        '<button data-aedit="'+a.id+'" title="ویرایش" style="color:var(--blue)">'+ic('pencil','sm')+'</button>'+
+        '<button class="del" data-adel="'+a.id+'" title="حذف">'+ic('trash','sm')+'</button></span></div>';
+    }).join('') : '<div class="emptyday">'+ic('bell','lg')+'هنوز اعلانی نساخته‌ای.<br>اولین یادآوری‌ات را اضافه کن.</div>')+
+  '</div>';
+
+  /* تاریخ شمسی */
+  const sD=$('#al-dd'), sM=$('#al-mm'), sY=$('#al-yy');
+  const base= editing? d2j(editing.serial) : tj;
+  sY.innerHTML=[base.jy-1,base.jy,base.jy+1,base.jy+2].filter((x,i,a)=>a.indexOf(x)===i).map(y=>'<option value="'+y+'">'+fa(y)+'</option>').join('');
+  sM.innerHTML=JMONTHS.map((m,i)=>'<option value="'+(i+1)+'">'+m+'</option>').join('');
+  function fillD(){ const len=jMonthLen(+sY.value,+sM.value); sD.innerHTML=Array.from({length:len},(_,i)=>'<option value="'+(i+1)+'">'+fa(i+1)+'</option>').join(''); }
+  sY.value=base.jy; sM.value=base.jm; fillD(); sD.value=Math.min(base.jd, jMonthLen(+sY.value,+sM.value));
+  sY.onchange=sM.onchange=fillD;
+
+  $('#al-save').onclick=()=>{
+    const title=$('#al-title').value.trim();
+    if(!title){ toast('عنوان اعلان را بنویس','info'); $('#al-title').focus(); return; }
+    const serial=j2d(+sY.value,+sM.value,+sD.value);
+    const time=$('#al-time').value||'09:00';
+    const epoch=alertEpoch(serial,time);
+    if(epoch<Date.now()-60000){ toast('این زمان گذشته است؛ تاریخ/ساعت دیگری انتخاب کن','info'); return; }
+    if(editing){
+      editing.title=title; editing.desc=$('#al-desc').value.trim(); editing.serial=serial; editing.time=time; editing.epoch=epoch; editing.enabled=true; delete editing.fired;
+      syncAlert(editing); alertEditId=null; toast('اعلان به‌روزرسانی شد');
+    } else {
+      const a={id:uid(), title, desc:$('#al-desc').value.trim(), serial, time, epoch, enabled:true, createdAt:Date.now()};
+      state.alerts.push(a); syncAlert(a); toast('اعلان ساخته شد','bell');
+    }
+    save(); renderAlerts();
+  };
+  const ac=$('#al-cancel'); if(ac) ac.onclick=()=>{ alertEditId=null; renderAlerts(); };
+  $('#al-perm').onclick=requestAlertPermission;
+  $('#al-exact').onclick=requestExactAlarmPermission;
+
+  $$('[data-aon]').forEach(b=>b.onclick=()=>{ const a=state.alerts.find(x=>x.id===b.dataset.aon); if(!a)return;
+    a.enabled=!a.enabled; syncAlert(a); save(); renderAlerts(); toast(a.enabled?'اعلان فعال شد':'اعلان غیرفعال شد'); });
+  $$('[data-aedit]').forEach(b=>b.onclick=()=>{ alertEditId=b.dataset.aedit; renderAlerts(); window.scrollTo({top:0,behavior:'smooth'}); });
+  $$('[data-adel]').forEach(b=>b.onclick=async ()=>{ const a=state.alerts.find(x=>x.id===b.dataset.adel); if(!a)return;
+    if(await modal({title:'حذف اعلان', msg:'«'+a.title+'» حذف شود؟', danger:true, okTxt:'حذف'})){
+      ncall('cancelAlert', String(a.id));
+      state.alerts=state.alerts.filter(x=>x.id!==a.id); save(); renderAlerts(); toast('اعلان حذف شد','trash');
+    }});
+}
+window.renderAlerts=renderAlerts;
+
+/* ---------- 4) فونت محلی وزیرمتن ---------- */
+function addCdnFontFallback(){
+  if(document.getElementById('vazi-cdn')) return;
+  try{
+    const l=document.createElement('link'); l.id='vazi-cdn'; l.rel='stylesheet';
+    l.href='https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;800;900&display=swap';
+    document.head.appendChild(l);
+  }catch(e){}
+}
+function loadLocalFonts(){
+  const faces=[
+    {w:400,f:'Vazirmatn-Regular.woff2'},{w:500,f:'Vazirmatn-Medium.woff2'},{w:700,f:'Vazirmatn-Bold.woff2'}
+  ];
+  const css=faces.map(x=>"@font-face{font-family:'Vazirmatn';font-style:normal;font-weight:"+x.w+";font-display:swap;src:url('assets/fonts/"+x.f+"') format('woff2')}").join('\n');
+  const inject=()=>{ if(document.getElementById('vazi-local')) return; const st=document.createElement('style'); st.id='vazi-local'; st.textContent=css; document.head.appendChild(st); };
+  try{
+    fetch('assets/fonts/Vazirmatn-Regular.woff2',{method:'HEAD'}).then(r=>{
+      if(r.ok) inject(); else if(location.protocol==='http:'||location.protocol==='https:') addCdnFontFallback();
+    }).catch(()=>{ if(location.protocol==='http:'||location.protocol==='https:') addCdnFontFallback(); });
+  }catch(e){ if(location.protocol==='http:'||location.protocol==='https:') addCdnFontFallback(); }
+}
+
+/* ---------- 5) Service Worker برای نسخه وب آفلاین ---------- */
+function registerSW(){
+  if(!(location.protocol==='http:'||location.protocol==='https:')) return;
+  if(!('serviceWorker' in navigator)) return;
+  try{ navigator.serviceWorker.register('sw.js').catch(()=>{}); }catch(e){}
+}
+
+/* ---------- 6) راه‌اندازی لایه افزوده ---------- */
+document.addEventListener('DOMContentLoaded',()=>{
+  try{
+    if(typeof state==='undefined' || !state) return;
+    if(!state.alerts) state.alerts=[];
+    loadLocalFonts();
+    registerSW();
+    /* بازیابی اعلان‌ها و تایمرها از سمت اندروید */
+    state.alerts.forEach(a=>{ try{ a.epoch=alertEpoch(a.serial,a.time); syncAlert(a); }catch(e){} });
+    setTimeout(()=>{ try{ syncFromNative(); }catch(e){} }, 400);
+    checkWebAlerts();
+  }catch(e){ try{ console.warn('bridge init', e); }catch(_){} }
+});
+})();
+</script>
+</body>
+</html>
